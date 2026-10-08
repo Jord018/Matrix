@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+
+/* Theme colours from the old store (home-style.css :root) */
+@theme {
+    --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --color-primary: #360185;
+    --color-secondary: #8F0177;
+    --color-accent-red: #DE1A58;
+    --color-accent-yellow: #F4B342;
+    --color-bg-light: #f4f6f9;
+    --color-twilight: #0a0314;
+}
