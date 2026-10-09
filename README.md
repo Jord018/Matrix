@@ -40,3 +40,5 @@ cd frontend && npm test          # npm run coverage for a coverage report
 - Branch per change: `feature/<name>`, `fix/<name>`, `chore/<name>`, `refactor/<name>`.
 - A PR can merge only when the `backend` and `frontend` CI jobs pass, including the
   SonarQube Cloud quality gate for each app (`jord018_matrix-backend`, `jord018_matrix-frontend`).
+
+<!-- sonar PR gate test -->
