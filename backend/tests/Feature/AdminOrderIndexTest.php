@@ -3,18 +3,16 @@
 namespace Tests\Feature;
 
 use App\Models\Order;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AdminOrderIndexTest extends TestCase
 {
-    use BackOfficeSchema, RefreshDatabase;
+    use BackOfficeSchema;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createSchema();
     }
 
     public function test_requires_admin(): void
