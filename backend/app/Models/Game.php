@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\PgTextArray;
 use App\Models\Concerns\AcceptsAnyStringId;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
