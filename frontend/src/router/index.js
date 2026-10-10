@@ -8,7 +8,6 @@ import { loadUser, isAdmin } from '../auth';
 export const routes = [
     { path: '/', component: Home },
     { path: '/login', component: Login },
-    // TODO(checklist #6): replace placeholder with the real game list
     {
         path: '/admin',
         component: AdminLayout,
