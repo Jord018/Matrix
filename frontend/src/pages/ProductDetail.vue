@@ -101,24 +101,34 @@ const buyNow = () => {
         <!-- Left Column: Visuals (Slider) -->
         <div class="w-full lg:w-7/12">
           <div v-if="displayShots.length > 0">
-            <div class="relative rounded-xl overflow-hidden shadow-md mb-4 bg-gray-100 group cursor-pointer" @click="isLightboxOpen = true">
-              <img :src="displayShots[currentImageIndex]" :alt="game.name" class="w-full h-auto max-h-[450px] object-contain transition-opacity duration-300">
+            <button 
+                 type="button"
+                 class="relative w-full block rounded-xl overflow-hidden shadow-md mb-4 bg-gray-100 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary" 
+                 @click="isLightboxOpen = true"
+                 aria-label="View full size image">
+              <img :src="displayShots[currentImageIndex]" :alt="game.name" class="w-full h-auto max-h-[450px] object-contain transition-opacity duration-300 block">
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                 <i class="fa-solid fa-magnifying-glass-plus text-white text-4xl opacity-0 group-hover:opacity-100 transition-opacity"></i>
               </div>
-            </div>
+            </button>
 
             <!-- Thumbnail Scroller -->
             <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-              <img 
+              <button 
                 v-for="(shot, index) in displayShots" 
-                :key="index" 
-                :src="shot" 
+                :key="index"
+                type="button"
                 @click="setMainImage(index)"
-                class="h-20 w-32 object-cover rounded-md cursor-pointer transition-all duration-200 border-2"
-                :class="currentImageIndex === index ? 'border-primary shadow-md opacity-100' : 'border-transparent opacity-60 hover:opacity-100'"
-                :alt="`Thumbnail ${index + 1}`"
+                class="shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                :aria-label="`View thumbnail ${index + 1}`"
               >
+                <img 
+                  :src="shot" 
+                  class="h-20 w-32 object-cover rounded-md transition-all duration-200 border-2 block"
+                  :class="currentImageIndex === index ? 'border-primary shadow-md opacity-100' : 'border-transparent opacity-60 hover:opacity-100'"
+                  :alt="`Thumbnail ${index + 1}`"
+                >
+              </button>
             </div>
           </div>
           <div v-else class="bg-gray-100 rounded-xl h-[450px] flex items-center justify-center">
@@ -206,9 +216,12 @@ const buyNow = () => {
       </div>
       
       <!-- Lightbox Modal -->
-      <div v-if="isLightboxOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm" @click="isLightboxOpen = false">
-        <button class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 focus:outline-none" @click.stop="isLightboxOpen = false">&times;</button>
-        <img :src="displayShots[currentImageIndex]" :alt="game.name" class="max-w-[90vw] max-h-[90vh] object-contain shadow-2xl rounded-md" @click.stop>
+      <div v-if="isLightboxOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <!-- จุดที่ 3: ใช้ปุ่มเปล่าบังเต็มจอแทนการดักคลิกที่ div พื้นหลัง -->
+        <button type="button" class="absolute inset-0 w-full h-full cursor-default focus:outline-none" @click="isLightboxOpen = false" aria-label="Close Lightbox"></button>
+        <button type="button" class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 focus:outline-none z-10" @click="isLightboxOpen = false" aria-label="Close">&times;</button>
+        
+        <img :src="displayShots[currentImageIndex]" :alt="game.name" class="relative z-10 max-w-[90vw] max-h-[90vh] object-contain shadow-2xl rounded-md">
       </div>
 
     </div>
