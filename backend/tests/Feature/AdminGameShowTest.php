@@ -36,6 +36,16 @@ class AdminGameShowTest extends TestCase
             ->assertJsonPath('systemRequirements.os', 'Win');
     }
 
+    public function test_finds_a_game_with_a_legacy_non_uuid_id(): void
+    {
+        $game = new Game(['name' => 'Legacy']);
+        $game->id = '69b7fba7cbfe780b4c63c7d0'; // id format of rows migrated from Mongo
+        $game->save();
+        $this->actAs();
+
+        $this->getJson('/api/admin/games/69b7fba7cbfe780b4c63c7d0')->assertOk()->assertJsonPath('name', 'Legacy');
+    }
+
     public function test_unknown_id_is_404(): void
     {
         $this->actAs();
