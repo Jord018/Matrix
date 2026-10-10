@@ -44,4 +44,18 @@ class CategoryController extends Controller
 
         return response()->json($category);
     }
+
+    /** Delete a category and strip it from every game (the old store left it dangling). */
+    public function destroy(Category $category): JsonResponse
+    {
+        DB::transaction(function () use ($category) {
+            foreach (Game::withCategory($category->name) as $game) {
+                $game->categories = array_values(array_filter($game->categories, fn ($c) => $c !== $category->name));
+                $game->save();
+            }
+            $category->delete();
+        });
+
+        return response()->json(['message' => 'Deleted.']);
+    }
 }
