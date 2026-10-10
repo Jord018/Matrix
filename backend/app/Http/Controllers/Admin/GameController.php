@@ -33,4 +33,11 @@ class GameController extends Controller
     {
         return response()->json(Game::create($request->gameData()), 201);
     }
+
+    public function update(GameRequest $request, Game $game): JsonResponse
+    {
+        $game->update($request->gameData());
+
+        return response()->json($game);
+    }
 }
