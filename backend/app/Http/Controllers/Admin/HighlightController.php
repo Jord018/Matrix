@@ -36,4 +36,11 @@ class HighlightController extends Controller
             'buttonColor' => $data['buttonColor'] ?? '#8b0000',
         ]), 201);
     }
+
+    public function destroy(Highlight $highlight): JsonResponse
+    {
+        $highlight->delete();
+
+        return response()->json(['message' => 'Deleted.']);
+    }
 }

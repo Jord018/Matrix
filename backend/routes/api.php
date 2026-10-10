@@ -13,6 +13,7 @@ Route::get('/user', fn (Request $request) => $request->user())->middleware('auth
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/highlights', [HighlightController::class, 'index']);
     Route::post('/highlights', [HighlightController::class, 'store']);
+    Route::delete('/highlights/{highlight}', [HighlightController::class, 'destroy']);
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
