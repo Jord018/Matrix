@@ -48,7 +48,8 @@ const handleCheckout = () => {
                   <button type="button" @click="cartStore.updateQuantity(item.game.id, -1)" class="px-3 py-1 text-primary hover:bg-gray-200 transition-colors focus:outline-none">
                     <i class="fa-solid fa-minus"></i>
                   </button>
-                  <input type="number" :value="item.quantity" readonly class="w-10 text-center font-bold text-gray-800 bg-transparent border-0 focus:outline-none focus:ring-0 p-0">
+                  <label :for="'quantity-' + item.game.id" class="sr-only">Quantity</label>
+                  <input :id="'quantity-' + item.game.id" type="number" :value="item.quantity" readonly class="w-10 text-center font-bold text-gray-800 bg-transparent border-0 focus:outline-none focus:ring-0 p-0" aria-label="Quantity">
                   <button type="button" @click="cartStore.updateQuantity(item.game.id, 1)" class="px-3 py-1 text-primary hover:bg-gray-200 transition-colors focus:outline-none">
                     <i class="fa-solid fa-plus"></i>
                   </button>
