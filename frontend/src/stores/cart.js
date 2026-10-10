@@ -7,6 +7,7 @@ export const useCartStore = defineStore('cart', () => {
   // --- เพิ่ม State สำหรับ Checkout ---
   const checkoutItems = ref([])
   const checkoutType = ref(null)
+  const lastOrder = ref(null)
 
   const totalItems = computed(() => {
     return items.value.reduce((total, item) => total + item.quantity, 0)
@@ -55,16 +56,12 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  const setLastOrder = (orderData) => {
+    lastOrder.value = orderData
+  }
+
   return {
-    items,
-    checkoutItems,
-    checkoutType,
-    totalItems,
-    totalPrice,
-    addToCart,
-    updateQuantity,
-    removeFromCart,
-    clearCart,
-    prepareCheckout
+    items, checkoutItems, checkoutType, lastOrder,
+    totalItems, totalPrice, addToCart, updateQuantity, removeFromCart, clearCart, prepareCheckout, setLastOrder
   }
 })
