@@ -145,13 +145,13 @@ const buyNow = () => {
 
           <!-- Amount Selector -->
           <div>
-            <label class="block text-gray-500 font-bold mb-2">Amount</label>
+            <label for="amount" class="block text-gray-500 font-bold mb-2">Amount</label>
             <div class="flex items-center gap-4">
               <div class="flex items-center bg-white border-2 border-gray-200 rounded-lg overflow-hidden w-max">
                 <button @click="updateQty(-1)" class="px-4 py-2 bg-gray-50 text-primary hover:bg-gray-100 transition-colors focus:outline-none">
                   <i class="fa-solid fa-minus"></i>
                 </button>
-                <input type="number" v-model="amount" readonly class="w-12 text-center font-bold text-lg border-x-0 focus:outline-none" :max="game.stock">
+                <input id="amount" type="number" v-model="amount" readonly class="w-12 text-center font-bold text-lg border-x-0 focus:outline-none" :max="game.stock" aria-label="Amount">
                 <button @click="updateQty(1)" class="px-4 py-2 bg-gray-50 text-primary hover:bg-gray-100 transition-colors focus:outline-none">
                   <i class="fa-solid fa-plus"></i>
                 </button>
@@ -208,7 +208,7 @@ const buyNow = () => {
       <!-- Lightbox Modal -->
       <div v-if="isLightboxOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm" @click="isLightboxOpen = false">
         <button class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 focus:outline-none" @click.stop="isLightboxOpen = false">&times;</button>
-        <img :src="displayShots[currentImageIndex]" class="max-w-[90vw] max-h-[90vh] object-contain shadow-2xl rounded-md" @click.stop>
+        <img :src="displayShots[currentImageIndex]" :alt="game.name" class="max-w-[90vw] max-h-[90vh] object-contain shadow-2xl rounded-md" @click.stop>
       </div>
 
     </div>
