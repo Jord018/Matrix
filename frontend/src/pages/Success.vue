@@ -2,9 +2,15 @@
 import { ref } from "vue";
 
 // สร้างเลข Order จำลองแบบสุ่ม (ORD-XXXXXX)
-const orderNumber = ref(
-  "ORD-" + Math.random().toString(36).substring(2, 8).padEnd(6, "0").toUpperCase()
-);
+const randomValues = new Uint8Array(6);
+const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+window.crypto.getRandomValues(randomValues);
+const randomCode = Array.from(
+  randomValues,
+  (byte) => characters[byte % characters.length]
+).join("");
+
+const orderNumber = ref(`ORD-${randomCode}`);
 </script>
 
 <template>
