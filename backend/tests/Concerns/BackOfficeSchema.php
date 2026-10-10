@@ -35,6 +35,7 @@ trait BackOfficeSchema
             while (DB::transactionLevel() > 0) {
                 DB::rollBack();
             }
+            DB::disconnect(); // the Supabase session pooler allows only a few clients
         });
 
         foreach (self::TABLES as $table) {
