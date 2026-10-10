@@ -1,13 +1,10 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 
 // สร้างเลข Order จำลองแบบสุ่ม (ORD-XXXXXX)
-const orderNumber = ref("");
-
-onMounted(() => {
-  orderNumber.value =
-    "ORD-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-});
+const orderNumber = ref(
+  "ORD-" + Math.random().toString(36).substring(2, 8).padEnd(6, "0").toUpperCase()
+);
 </script>
 
 <template>
