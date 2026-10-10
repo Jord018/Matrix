@@ -3,28 +3,17 @@
 namespace Tests\Feature;
 
 use App\Models\Account;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
+use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
 {
-    use RefreshDatabase;
+    use BackOfficeSchema;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // "Account" is an existing Supabase table, so it has no migration.
-        Schema::create('Account', function ($t) {
-            $t->uuid('id')->primary();
-            $t->string('Username');
-            $t->string('Email');
-            $t->string('PasswordHash');
-            $t->string('Role')->default('customer');
-            $t->timestamp('createdAt')->nullable();
-        });
 
         Account::create([
             'Username' => 'jerry',
