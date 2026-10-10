@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 import Navbar from '../src/components/Navbar.vue'
 
@@ -38,6 +38,9 @@ describe('Navbar.vue', () => {
         // จำลองการกด Submit Form
         const forms = wrapper.findAll('form')
         await forms[0].trigger('submit.prevent')
+
+        // รอ Router เปลี่ยนหน้าให้เสร็จก่อน
+        await flushPromises() 
 
         // ตรวจสอบว่า Router มีการเปลี่ยนหน้าไปที่ /search พร้อม Query จริง
         expect(router.currentRoute.value.path).toBe('/search')
