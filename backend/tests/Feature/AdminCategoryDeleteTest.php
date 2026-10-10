@@ -4,18 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Game;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AdminCategoryDeleteTest extends TestCase
 {
-    use BackOfficeSchema, RefreshDatabase;
+    use BackOfficeSchema;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createSchema();
     }
 
     public function test_requires_admin(): void
