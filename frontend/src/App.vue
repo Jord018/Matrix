@@ -4,7 +4,7 @@ import Navbar from './components/Navbar.vue'
 
 <template>
   <div class="min-h-screen bg-bg-light font-sans">
-    <Navbar />
+    <Navbar v-if="!$route.meta.admin" />
     <main>
       <RouterView />
     </main>

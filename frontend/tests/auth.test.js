@@ -77,7 +77,7 @@ describe('admin route guard', () => {
     });
 
     it('marks the admin route', () => {
-        expect(routes.find((r) => r.path === '/admin/back-game').meta.admin).toBe(true);
+        expect(routes.find((r) => r.path === '/admin').meta.admin).toBe(true);
     });
 });
 
