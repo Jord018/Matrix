@@ -3,18 +3,16 @@
 namespace Tests\Feature;
 
 use App\Models\Highlight;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AdminHighlightDeleteTest extends TestCase
 {
-    use BackOfficeSchema, RefreshDatabase;
+    use BackOfficeSchema;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createSchema();
     }
 
     public function test_requires_admin(): void
