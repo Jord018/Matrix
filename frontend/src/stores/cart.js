@@ -4,17 +4,18 @@ import { ref, computed } from 'vue'
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
 
-  // คำนวณจำนวนชิ้นทั้งหมด
+  // --- เพิ่ม State สำหรับ Checkout ---
+  const checkoutItems = ref([])
+  const checkoutType = ref(null)
+
   const totalItems = computed(() => {
     return items.value.reduce((total, item) => total + item.quantity, 0)
   })
 
-  // คำนวณราคารวม
   const totalPrice = computed(() => {
     return items.value.reduce((total, item) => total + (item.game.price * item.quantity), 0)
   })
 
-  // เพิ่มสินค้าลงตะกร้า
   const addToCart = (game, amount = 1) => {
     const existingItem = items.value.find(item => item.game.id === game.id)
     if (existingItem) {
@@ -25,7 +26,6 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  // ปรับลด/เพิ่มจำนวน
   const updateQuantity = (gameId, change) => {
     const item = items.value.find(item => item.game.id === gameId)
     if (item) {
@@ -36,23 +36,35 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  // ลบสินค้า
   const removeFromCart = (gameId) => {
     items.value = items.value.filter(item => item.game.id !== gameId)
   }
 
-  // ล้างตะกร้า
   const clearCart = () => {
     items.value = []
   }
 
-  return { 
-    items, 
-    totalItems, 
-    totalPrice, 
-    addToCart, 
-    updateQuantity, 
-    removeFromCart, 
-    clearCart 
+  // --- เพิ่ม Action สำหรับเตรียม Checkout ---
+  const prepareCheckout = (type, game = null, amount = 1) => {
+    checkoutType.value = type
+    if (type === 'cart') {
+      // โคลนข้อมูลตะกร้ามาไว้ที่ checkout เพื่อไม่ให้ผูกกับตะกร้าหลัก (เผื่อแก้ตะกร้าทีหลัง)
+      checkoutItems.value = JSON.parse(JSON.stringify(items.value))
+    } else if (type === 'single' && game) {
+      checkoutItems.value = [{ game, quantity: amount }]
+    }
+  }
+
+  return {
+    items,
+    checkoutItems,
+    checkoutType,
+    totalItems,
+    totalPrice,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    prepareCheckout
   }
 })
