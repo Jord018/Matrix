@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
 import Login from '../pages/Login.vue';
+import AdminLayout from '../components/AdminLayout.vue';
 import AdminGames from '../pages/AdminGames.vue';
 import { loadUser, isAdmin } from '../auth';
 
@@ -8,7 +9,12 @@ export const routes = [
     { path: '/', component: Home },
     { path: '/login', component: Login },
     // TODO(checklist #6): replace placeholder with the real game list
-    { path: '/admin/back-game', component: AdminGames, meta: { admin: true } },
+    {
+        path: '/admin',
+        component: AdminLayout,
+        meta: { admin: true },
+        children: [{ path: 'back-game', component: AdminGames }],
+    },
 ];
 
 export const adminGuard = async (to) => {
