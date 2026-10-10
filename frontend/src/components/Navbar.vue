@@ -33,10 +33,13 @@ const search = () => {
       <!-- Middle: Search Bar (Desktop) -->
       <div class="hidden lg:flex flex-1 max-w-[400px] mx-8 order-2">
         <form @submit.prevent="search" class="relative w-full">
-          <input v-model="searchQuery" 
+          <label for="search-desktop" class="sr-only">Search epic games</label>
+          <input id="search-desktop"
+                 v-model="searchQuery" 
                  class="w-full border-0 shadow-sm rounded-full pl-4 pr-10 py-2 bg-white/95 focus:outline-none text-gray-800" 
                  type="search" 
-                 placeholder="Search epic games...">
+                 placeholder="Search epic games..."
+                 aria-label="Search epic games...">
           <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-primary pointer-events-none"></i>
         </form>
       </div>
@@ -47,7 +50,7 @@ const search = () => {
         <ul class="hidden lg:flex items-center gap-6 m-0 p-0 list-none mr-2">
           <!-- Category Dropdown -->
           <li class="relative" @mouseleave="isCategoryOpen = false">
-            <button @mouseover="isCategoryOpen = true" class="text-white font-bold flex items-center hover:text-accent-yellow transition-colors py-2">
+            <button type="button" @mouseover="isCategoryOpen = true" @focus="isCategoryOpen = true" class="text-white font-bold flex items-center hover:text-accent-yellow transition-colors py-2">
               <i class="fa-solid fa-gamepad text-accent-yellow mr-2"></i> Category
             </button>
             <ul v-show="isCategoryOpen" class="absolute top-full left-0 mt-0 w-48 bg-white rounded-xl shadow-lg overflow-hidden py-2 z-50 list-none p-0">
@@ -67,7 +70,7 @@ const search = () => {
         </ul>
 
         <!-- Cart -->
-        <router-link to="/cart" class="text-white text-xl relative hover:scale-110 transition-transform">
+        <router-link to="/cart" class="text-white text-xl relative hover:scale-110 transition-transform" aria-label="Cart">
           <i class="fa-solid fa-cart-shopping"></i>
           <span v-if="cartItemCount > 0" class="absolute -top-2 -right-3 bg-red-600 text-white text-[0.65rem] px-2 py-0.5 rounded-full border-2 border-primary">
             {{ cartItemCount }}
@@ -75,12 +78,12 @@ const search = () => {
         </router-link>
 
         <!-- User Icon (Placeholder for Login) -->
-        <router-link to="/login" class="text-white text-xl hover:scale-110 transition-transform">
+        <router-link to="/login" class="text-white text-xl hover:scale-110 transition-transform" aria-label="Login">
           <i class="fa-solid fa-user"></i>
         </router-link>
 
         <!-- Mobile Menu Toggle -->
-        <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="lg:hidden text-white text-2xl ml-1 focus:outline-none">
+        <button type="button" @click="isMobileMenuOpen = !isMobileMenuOpen" class="lg:hidden text-white text-2xl ml-1 focus:outline-none" aria-label="Toggle navigation">
           <i class="fa-solid fa-bars"></i>
         </button>
       </div>
@@ -89,7 +92,8 @@ const search = () => {
     <!-- Mobile Menu Collapse -->
     <div v-if="isMobileMenuOpen" class="lg:hidden bg-primary px-4 pb-4">
       <form @submit.prevent="search" class="relative w-full mt-2 mb-4">
-        <input v-model="searchQuery" class="w-full border-0 shadow-sm rounded-full pl-4 pr-10 py-2 bg-white/95 focus:outline-none text-gray-800" type="search" placeholder="Search epic games...">
+        <label for="search-mobile" class="sr-only">Search epic games</label>
+        <input id="search-mobile" v-model="searchQuery" class="w-full border-0 shadow-sm rounded-full pl-4 pr-10 py-2 bg-white/95 focus:outline-none text-gray-800" type="search" placeholder="Search epic games..." aria-label="Search epic games...">
         <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-primary pointer-events-none"></i>
       </form>
       <div class="flex flex-col gap-3">
