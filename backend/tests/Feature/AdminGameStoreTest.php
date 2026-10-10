@@ -4,19 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Game;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AdminGameStoreTest extends TestCase
 {
-    use BackOfficeSchema, RefreshDatabase;
+    use BackOfficeSchema;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createSchema();
         Category::create(['name' => 'RPG']);
     }
 
