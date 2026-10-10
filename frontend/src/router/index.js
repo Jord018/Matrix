@@ -5,6 +5,7 @@ import Login from '../pages/Login.vue';
 import AdminLayout from '../components/AdminLayout.vue';
 import AdminGames from '../pages/AdminGames.vue';
 import ProductDetail from '../pages/ProductDetail.vue';
+import Cart from '../pages/Cart.vue';
 import { loadUser, isAdmin } from '../auth';
 
 export const routes = [
@@ -13,6 +14,7 @@ export const routes = [
     { path: '/search', component: Category },       
     { path: '/login', component: Login },
     { path: '/product/:id', component: ProductDetail },
+    { path: '/cart', component: Cart },
     {
         path: '/admin',
         component: AdminLayout,
