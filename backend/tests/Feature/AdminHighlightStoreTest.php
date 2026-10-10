@@ -4,20 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\Game;
 use App\Models\Highlight;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AdminHighlightStoreTest extends TestCase
 {
-    use BackOfficeSchema, RefreshDatabase;
+    use BackOfficeSchema;
 
     private Game $game;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createSchema();
         $this->game = Game::create(['name' => 'Zelda', 'coverImage' => 'http://x/cover.png']);
     }
 
