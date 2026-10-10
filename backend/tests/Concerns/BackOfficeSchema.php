@@ -3,13 +3,45 @@
 namespace Tests\Concerns;
 
 use App\Models\Account;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 /**
- * Creates the existing Supabase tables (which have no migrations) in the sqlite test DB.
+ * Database setup for back-office tests, picked by the connection driver:
+ *
+ * - sqlite (default, CI): the Supabase tables have no migrations, so create them in the in-memory DB.
+ * - pgsql (real Supabase, opt-in with SUPABASE_TESTS=1): never migrate. Open a transaction, empty the
+ *   tables inside it so each test sees a clean slate, and roll everything back when the test ends.
  */
 trait BackOfficeSchema
 {
+    private const TABLES = ['orders', 'highlights', 'games', 'category_settings', 'Account'];
+
+    protected function setUpBackOfficeSchema(): void
+    {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            $this->createSchema();
+
+            return;
+        }
+
+        if (! env('SUPABASE_TESTS')) {
+            throw new RuntimeException('Refusing to touch a Postgres database without SUPABASE_TESTS=1.');
+        }
+
+        DB::beginTransaction();
+        $this->beforeApplicationDestroyed(function () {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+        });
+
+        foreach (self::TABLES as $table) {
+            DB::table($table)->delete(); // rolled back with the transaction
+        }
+    }
+
     protected function createSchema(): void
     {
         Schema::create('Account', function ($t) {
