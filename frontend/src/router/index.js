@@ -6,15 +6,17 @@ import AdminLayout from '../components/AdminLayout.vue';
 import AdminGames from '../pages/AdminGames.vue';
 import ProductDetail from '../pages/ProductDetail.vue';
 import Cart from '../pages/Cart.vue';
+import Purchase from '../pages/Purchase.vue';
 import { loadUser, isAdmin } from '../auth';
 
 export const routes = [
     { path: '/', component: Home },
     { path: '/category/:name', component: Category },
-    { path: '/search', component: Category },       
+    { path: '/search', component: Category },
     { path: '/login', component: Login },
     { path: '/product/:id', component: ProductDetail },
     { path: '/cart', component: Cart },
+    { path: '/checkout', component: Purchase },
     {
         path: '/admin',
         component: AdminLayout,

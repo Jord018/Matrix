@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import ProductDetail from '../src/pages/ProductDetail.vue'
 import * as apiModule from '../src/api'
@@ -36,6 +37,7 @@ describe('ProductDetail.vue', () => {
   }
 
   beforeEach(async () => {
+    setActivePinia(createPinia())
     vi.clearAllMocks()
     await router.push('/product/123')
     await router.isReady()
@@ -109,5 +111,18 @@ describe('ProductDetail.vue', () => {
     await flushPromises()
 
     expect(pushSpy).toHaveBeenCalledWith('/')
+  })
+
+  it('prepares checkout and navigates to checkout on buy now', async () => {
+    apiModule.api.mockResolvedValue(mockGame)
+    const pushSpy = vi.spyOn(router, 'push')
+
+    const wrapper = mount(ProductDetail, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const buyBtn = wrapper.findAll('button').find(btn => btn.text().includes('Buy now'))
+    await buyBtn.trigger('click')
+
+    expect(pushSpy).toHaveBeenCalledWith('/checkout')
   })
 })
