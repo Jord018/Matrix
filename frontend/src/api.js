@@ -15,6 +15,9 @@ export async function api(path, options = {}) {
     }
 
     const res = await fetch(`/api${path}`, { credentials: 'include', ...options, headers });
-    if (!res.ok) throw Object.assign(new Error(`API ${res.status}: ${path}`), { status: res.status });
+    if (!res.ok) {
+        const data = await res.json?.().catch(() => null);
+        throw Object.assign(new Error(`API ${res.status}: ${path}`), { status: res.status, data });
+    }
     return res.json();
 }
