@@ -7,6 +7,8 @@ import AdminGames from '../pages/AdminGames.vue';
 import ProductDetail from '../pages/ProductDetail.vue';
 import Cart from '../pages/Cart.vue';
 import Purchase from '../pages/Purchase.vue';
+import Success from '../pages/Success.vue';
+import MyKeys from '../pages/MyKeys.vue';
 import { loadUser, isAdmin } from '../auth';
 
 export const routes = [
@@ -17,6 +19,8 @@ export const routes = [
     { path: '/product/:id', component: ProductDetail },
     { path: '/cart', component: Cart },
     { path: '/checkout', component: Purchase },
+    { path: '/success', component: Success },
+    { path: '/my-keys', component: MyKeys },
     {
         path: '/admin',
         component: AdminLayout,
