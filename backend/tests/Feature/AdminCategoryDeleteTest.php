@@ -42,6 +42,17 @@ class AdminCategoryDeleteTest extends TestCase
         $this->assertSame(['Action'], $c->fresh()->categories);
     }
 
+    public function test_deletes_a_category_with_a_legacy_non_uuid_id(): void
+    {
+        $category = new Category(['name' => 'Legacy']);
+        $category->id = '69b7fba7cbfe780b4c63c7d1'; // id format of rows migrated from Mongo
+        $category->save();
+        $this->actAs();
+
+        $this->deleteJson('/api/admin/categories/69b7fba7cbfe780b4c63c7d1')->assertOk();
+        $this->assertSame(0, Category::count());
+    }
+
     public function test_unknown_category_is_404(): void
     {
         $this->actAs();
