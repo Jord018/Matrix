@@ -3,19 +3,16 @@
 namespace Tests\Feature;
 
 use App\Models\Game;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BackOfficeSchema;
 use Tests\TestCase;
 
 class AdminGameIndexTest extends TestCase
 {
-    use BackOfficeSchema, RefreshDatabase;
+    use BackOfficeSchema;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->createSchema();
 
         foreach (['Alpha Quest', 'Zelda 100%', 'Mario'] as $name) {
             Game::create(['name' => $name, 'price' => 10, 'stock' => 3, 'categories' => ['RPG']]);
