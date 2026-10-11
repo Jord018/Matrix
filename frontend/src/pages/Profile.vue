@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api'
 import { auth, logout } from '../auth'
+import { useCartStore } from '../stores/cart'
 
 // Old store profile page: account card + every key the user has bought.
 const router = useRouter()
@@ -14,8 +15,11 @@ onMounted(async () => {
   loading.value = false
 })
 
+const cartStore = useCartStore()
+
 const signOut = async () => {
   await logout()
+  cartStore.reset()
   router.push('/login')
 }
 
