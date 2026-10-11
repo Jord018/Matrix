@@ -7,19 +7,27 @@ use App\Models\Game;
 use App\Models\Highlight;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CatalogController extends Controller
 {
+    /**
+     * Cache TTL in seconds for public catalog data.
+     */
+    public const CACHE_TTL = 60;
+
     /**
      * GET /api/categories
      * Returns visible categories from category_settings table.
      */
     public function categories(): JsonResponse
     {
-        $categories = CategorySetting::where('isVisible', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $categories = Cache::remember('catalog.categories', self::CACHE_TTL, function () {
+            return CategorySetting::where('isVisible', true)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        });
 
         return response()->json($categories);
     }
@@ -30,7 +38,9 @@ class CatalogController extends Controller
      */
     public function highlights(): JsonResponse
     {
-        $highlights = Highlight::all();
+        $highlights = Cache::remember('catalog.highlights', self::CACHE_TTL, function () {
+            return Highlight::all();
+        });
 
         return response()->json($highlights);
     }
@@ -41,37 +51,43 @@ class CatalogController extends Controller
      */
     public function games(Request $request): JsonResponse
     {
-        $query = Game::query();
+        $cacheKey = 'catalog.games.'.hash('sha256', $request->fullUrl());
 
-        if ($search = $request->query('q') ?? $request->query('search')) {
-            $like = '%'.addcslashes(mb_strtolower((string) $search), '\%_').'%';
-            $query->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like]);
-        }
+        $data = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
+            $query = Game::query();
 
-        if ($category = $request->query('category')) {
-            if (DB::connection()->getDriverName() === 'pgsql') {
-                $query->whereRaw('? = ANY(coalesce(categories, \'{}\'))', [(string) $category]);
-            } else {
-                $query->where(function ($q) use ($category) {
-                    $q->where('categories', 'like', '%"'.$category.'"%')
-                        ->orWhere('categories', 'like', '%'.$category.'%');
-                });
+            if ($search = $request->query('q') ?? $request->query('search')) {
+                $like = '%'.addcslashes(mb_strtolower((string) $search), '\%_').'%';
+                $query->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like]);
             }
-        }
 
-        if ($request->has('page')) {
-            $limit = max(1, (int) $request->query('limit', 15));
+            if ($category = $request->query('category')) {
+                if (DB::connection()->getDriverName() === 'pgsql') {
+                    $query->whereRaw('? = ANY(coalesce(categories, \'{}\'))', [(string) $category]);
+                } else {
+                    $query->where(function ($q) use ($category) {
+                        $q->where('categories', 'like', '%"'.$category.'"%')
+                            ->orWhere('categories', 'like', '%'.$category.'%');
+                    });
+                }
+            }
 
-            return response()->json($query->paginate($limit));
-        }
+            if ($request->has('page')) {
+                $limit = max(1, (int) $request->query('limit', 15));
 
-        if ($request->has('limit')) {
-            $limit = max(1, (int) $request->query('limit'));
+                return $query->paginate($limit);
+            }
 
-            return response()->json($query->limit($limit)->get());
-        }
+            if ($request->has('limit')) {
+                $limit = max(1, (int) $request->query('limit'));
 
-        return response()->json($query->get());
+                return $query->limit($limit)->get();
+            }
+
+            return $query->get();
+        });
+
+        return response()->json($data);
     }
 
     /**
@@ -80,7 +96,9 @@ class CatalogController extends Controller
      */
     public function game(string $id): JsonResponse
     {
-        $game = Game::find($id);
+        $game = Cache::remember('catalog.game.'.$id, self::CACHE_TTL, function () use ($id) {
+            return Game::find($id);
+        });
 
         if (! $game) {
             return response()->json(['message' => 'Game not found'], 404);

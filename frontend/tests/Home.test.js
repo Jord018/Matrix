@@ -109,4 +109,18 @@ describe('Home.vue', () => {
 
         expect(wrapper.text()).toContain('No games available!')
     })
+
+    it('handles wrapped { data: [...] } response without throwing', async () => {
+        vi.spyOn(apiModule, 'api').mockImplementation(async (path) => {
+            if (path === '/games') return { data: [{ id: '1', name: 'Wrapped Game', price: 100 }] }
+            if (path === '/highlights') return { data: [{ id: 'h1', name: 'Wrapped HL', customImage: '/hl.png' }] }
+            return null
+        })
+
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Wrapped Game')
+        expect(wrapper.find('img[alt="Wrapped HL"]').exists()).toBe(true)
+    })
 })

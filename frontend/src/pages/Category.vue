@@ -25,10 +25,14 @@ const pageTitle = computed(() => {
 });
 
 // คำนวณจำนวนหน้าทั้งหมด
-const totalPages = computed(() => Math.ceil(games.value.length / itemsPerPage));
+const totalPages = computed(() => {
+  if (!Array.isArray(games.value) || games.value.length === 0) return 0;
+  return Math.ceil(games.value.length / itemsPerPage);
+});
 
 // ตัด Array ของเกมเพื่อแสดงผลตามหน้า
 const paginatedGames = computed(() => {
+  if (!Array.isArray(games.value)) return [];
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
   return games.value.slice(start, end);
@@ -50,7 +54,9 @@ const fetchGames = async () => {
     }
 
     const res = await api(endpoint).catch(() => []);
-    games.value = res || [];
+    games.value = Array.isArray(res)
+      ? res
+      : (res?.data && Array.isArray(res.data) ? res.data : []);
   } catch (error) {
     console.error("Failed to fetch category data:", error);
   } finally {
