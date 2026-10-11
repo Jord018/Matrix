@@ -35,7 +35,7 @@ const submit = async () => {
       </div>
       <p class="auth-subtitle">
         Welcome back! Please enter your details to access your account. Don't have an account?
-        <RouterLink to="/register">Sign up here</RouterLink>
+        <RouterLink :to="{ path: '/register', query: route.query }">Sign up here</RouterLink>
       </p>
       <button type="submit" class="auth-btn">Log In</button>
     </form>

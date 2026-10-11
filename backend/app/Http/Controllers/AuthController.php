@@ -49,6 +49,9 @@ class AuthController extends Controller
             'createdAt' => now(),
         ]);
 
+        Auth::guard('web')->login($account);
+        $request->session()->regenerate();
+
         return response()->json($account, 201);
     }
 

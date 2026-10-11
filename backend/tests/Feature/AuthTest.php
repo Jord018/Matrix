@@ -50,6 +50,18 @@ class AuthTest extends TestCase
         $this->spa()->getJson('/api/user')->assertOk()->assertJsonPath('Username', 'jerry');
     }
 
+    public function test_login_accepts_accounts_hashed_by_the_old_node_app(): void
+    {
+        // Node's bcrypt writes $2b$ hashes; same algorithm as PHP's $2y$.
+        $hash = '$2b$'.substr(Hash::make('admin123'), 4);
+        Account::create(['Username' => 'admin', 'Email' => 'admin@example.com', 'PasswordHash' => $hash, 'Role' => 'admin']);
+
+        $this->spa()->postJson('/api/login', ['username' => 'admin', 'password' => 'admin123'])
+            ->assertOk()->assertJsonPath('Role', 'admin');
+        $this->spa()->postJson('/api/login', ['username' => 'admin', 'password' => 'wrong'])->assertStatus(401);
+        $this->assertSame($hash, Account::where('Username', 'admin')->value('PasswordHash'));
+    }
+
     public function test_login_rejects_wrong_password(): void
     {
         $this->spa()->postJson('/api/login', ['username' => 'jerry', 'password' => 'nope'])
@@ -88,6 +100,10 @@ class AuthTest extends TestCase
             'username' => 'tom', 'email' => 'tom@example.com', 'password' => 'pw12345', 'confirmPassword' => 'pw12345',
         ])->assertCreated()->assertJsonPath('Role', 'customer')->assertJsonMissingPath('PasswordHash');
 
+        // Registering signs the new account in straight away.
+        $this->spa()->getJson('/api/user')->assertSuccessful()->assertJsonPath('Username', 'tom');
+
+        $this->spa()->postJson('/api/logout')->assertOk();
         $this->spa()->postJson('/api/login', ['username' => 'tom', 'password' => 'pw12345'])->assertOk();
     }
 
