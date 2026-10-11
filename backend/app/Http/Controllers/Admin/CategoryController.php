@@ -58,4 +58,19 @@ class CategoryController extends Controller
 
         return response()->json(['message' => 'Deleted.']);
     }
+
+    /** Hide/show a category on the storefront. */
+    public function visibility(Request $request, Category $category): JsonResponse
+    {
+        $data = $request->validate(['isVisible' => ['required', 'boolean']]);
+        $category->update($data);
+
+        return response()->json($category);
+    }
+
+    /** Games that list this category (back-office "View"). */
+    public function games(Category $category): JsonResponse
+    {
+        return response()->json(Game::withCategory($category->name)->sortByDesc('name')->values());
+    }
 }
