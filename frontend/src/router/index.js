@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
 import Category from '../pages/Category.vue';
 import Login from '../pages/Login.vue';
+import Register from '../pages/Register.vue';
 import AdminLayout from '../components/AdminLayout.vue';
 import AdminGames from '../pages/AdminGames.vue';
 import AdminAddGame from '../pages/AdminAddGame.vue';
@@ -23,7 +24,8 @@ export const routes = [
     { path: '/', component: Home },
     { path: '/category/:name', component: Category },
     { path: '/search', component: Category },
-    { path: '/login', component: Login },
+    { path: '/login', component: Login, meta: { bare: true } },
+    { path: '/register', component: Register, meta: { bare: true } },
     { path: '/product/:id', component: ProductDetail },
     { path: '/cart', component: Cart },
     { path: '/checkout', component: Purchase },
