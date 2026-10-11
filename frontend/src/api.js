@@ -126,7 +126,7 @@ let lastVersion = null;
 
 const notifyCatalogChange = () => {
     inFlightRequests.clear(); // a refresh must not join a request that started before the change
-    changeListeners.forEach((run) => run());
+    changeListeners.forEach((run) => void run());
 };
 
 const onStorage = (e) => {
@@ -171,7 +171,7 @@ export const onCatalogChange = (cb) => {
         window.addEventListener('storage', onStorage);
         document.addEventListener('visibilitychange', checkCatalogVersion);
         pollTimer = setInterval(checkCatalogVersion, VERSION_POLL_MS);
-        checkCatalogVersion();
+        void checkCatalogVersion();
     }
     return () => {
         changeListeners.delete(run);
