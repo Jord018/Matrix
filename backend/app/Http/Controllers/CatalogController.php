@@ -26,7 +26,8 @@ class CatalogController extends Controller
         $categories = Cache::remember('catalog.categories', self::CACHE_TTL, function () {
             return CategorySetting::where('isVisible', true)
                 ->orderBy('name')
-                ->get(['id', 'name']);
+                ->get(['id', 'name'])
+                ->toArray();
         });
 
         return response()->json($categories);
@@ -39,7 +40,7 @@ class CatalogController extends Controller
     public function highlights(): JsonResponse
     {
         $highlights = Cache::remember('catalog.highlights', self::CACHE_TTL, function () {
-            return Highlight::all();
+            return Highlight::all()->toArray();
         });
 
         return response()->json($highlights);
@@ -75,16 +76,16 @@ class CatalogController extends Controller
             if ($request->has('page')) {
                 $limit = max(1, (int) $request->query('limit', 15));
 
-                return $query->paginate($limit);
+                return $query->paginate($limit)->toArray();
             }
 
             if ($request->has('limit')) {
                 $limit = max(1, (int) $request->query('limit'));
 
-                return $query->limit($limit)->get();
+                return $query->limit($limit)->get()->toArray();
             }
 
-            return $query->get();
+            return $query->get()->toArray();
         });
 
         return response()->json($data);
@@ -97,7 +98,7 @@ class CatalogController extends Controller
     public function game(string $id): JsonResponse
     {
         $game = Cache::remember('catalog.game.'.$id, self::CACHE_TTL, function () use ($id) {
-            return Game::find($id);
+            return Game::find($id)?->toArray();
         });
 
         if (! $game) {
