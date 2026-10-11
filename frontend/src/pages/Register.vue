@@ -31,19 +31,19 @@ const submit = async () => {
         <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
       </div>
       <div class="input-group">
-        <input id="username" v-model="form.username" class="auth-input" placeholder=" " required />
+        <input id="username" v-model="form.username" autocomplete="username" class="auth-input" placeholder=" " required />
         <label for="username" class="auth-label">Username</label>
       </div>
       <div class="input-group">
-        <input id="email" v-model="form.email" type="email" class="auth-input" placeholder=" " required />
+        <input id="email" v-model="form.email" autocomplete="email" type="email" class="auth-input" placeholder=" " required />
         <label for="email" class="auth-label">Email Address</label>
       </div>
       <div class="input-group">
-        <input id="password" v-model="form.password" type="password" class="auth-input" placeholder=" " required />
+        <input id="password" v-model="form.password" autocomplete="new-password" type="password" class="auth-input" placeholder=" " required />
         <label for="password" class="auth-label">Create Password</label>
       </div>
       <div class="input-group">
-        <input id="confirmPassword" v-model="form.confirmPassword" type="password" class="auth-input" placeholder=" " required />
+        <input id="confirmPassword" v-model="form.confirmPassword" autocomplete="new-password" type="password" class="auth-input" placeholder=" " required />
         <label for="confirmPassword" class="auth-label">Confirm Password</label>
       </div>
       <p class="auth-subtitle">

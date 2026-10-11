@@ -26,11 +26,11 @@ const submit = async () => {
     <form @submit.prevent="submit">
       <div v-if="error" role="alert" class="error-box">{{ error }}</div>
       <div class="input-group">
-        <input id="username" v-model="username" class="auth-input" placeholder=" " required />
+        <input id="username" v-model="username" autocomplete="username" class="auth-input" placeholder=" " required />
         <label for="username" class="auth-label">Username</label>
       </div>
       <div class="input-group">
-        <input id="password" v-model="password" type="password" class="auth-input" placeholder=" " required />
+        <input id="password" v-model="password" autocomplete="current-password" type="password" class="auth-input" placeholder=" " required />
         <label for="password" class="auth-label">Password</label>
       </div>
       <p class="auth-subtitle">

@@ -22,6 +22,7 @@ Route::post('/orders', [OrderController::class, 'store']);
 Route::post('/checkout', [OrderController::class, 'store']);
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/user', fn (Request $request) => $request->user())->middleware('auth:sanctum');
