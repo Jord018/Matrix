@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Casts\PgTextArray;
+use App\Models\Concerns\AcceptsAnyStringId;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
 {
-    use HasUuids;
+    use AcceptsAnyStringId;
 
     public $timestamps = false;
 
@@ -36,5 +37,14 @@ class Game extends Model
                 (new PgTextArray)->set($this, 'categories', $hidden, []),
             ]);
         }
+    }
+
+    /**
+     * Games listing the given category. Filtered in PHP so it works on any driver (text[] has no portable operator).
+     * ponytail: loads every game; use `? = ANY(categories)` on Postgres if the catalogue grows past a few thousand.
+     */
+    public static function withCategory(string $name): Collection
+    {
+        return static::all()->filter(fn (self $g) => in_array($name, $g->categories, true))->values();
     }
 }
