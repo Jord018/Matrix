@@ -180,4 +180,25 @@ class OrderApiTest extends TestCase
         ])->assertStatus(422)
             ->assertJsonValidationErrors('items.0.amount');
     }
+
+    public function test_index_lists_only_the_signed_in_users_orders_newest_first(): void
+    {
+        $item = [['gameName' => 'Hades', 'keys' => ['AAAA-BBBB-CCCC']]];
+        Order::create(['id' => 'ORD-OLD', 'userId' => $this->customer->id, 'username' => 'customer', 'items' => $item, 'purchaseDate' => now()->subDay(), 'status' => 'completed']);
+        Order::create(['id' => 'ORD-NEW', 'userId' => $this->customer->id, 'username' => 'customer', 'items' => $item, 'purchaseDate' => now(), 'status' => 'completed']);
+        Order::create(['id' => 'ORD-OTHER', 'userId' => 'someone-else', 'username' => 'x', 'items' => $item, 'purchaseDate' => now(), 'status' => 'completed']);
+
+        $this->getJson('/api/orders')
+            ->assertOk()
+            ->assertJsonCount(2)
+            ->assertJsonPath('0.id', 'ORD-NEW')
+            ->assertJsonPath('1.id', 'ORD-OLD')
+            ->assertJsonPath('0.items.0.keys.0', 'AAAA-BBBB-CCCC');
+    }
+
+    public function test_index_requires_login(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->getJson('/api/orders')->assertUnauthorized();
+    }
 }

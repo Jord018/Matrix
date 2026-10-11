@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { register } from '../auth'
+import { api } from '../api'
 import AuthLayout from '../components/AuthLayout.vue'
 
 const router = useRouter()
@@ -17,8 +17,9 @@ const submit = async () => {
     return
   }
   try {
-    await register(form)
-    router.push(route.query.redirect || '/')
+    // Like the old store: no auto sign-in, the new user logs in next.
+    await api('/register', { method: 'POST', body: JSON.stringify(form) })
+    router.push({ path: '/login', query: route.query })
   } catch (e) {
     error.value = e.status === 409 ? 'ชื่อผู้ใช้งานหรืออีเมลนี้ถูกใช้งานแล้ว' : 'ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่'
   }

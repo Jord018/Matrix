@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import Navbar from '../src/components/Navbar.vue'
+import { auth } from '../src/auth'
 
 // สร้าง Mock Router 
 const router = createRouter({
@@ -14,6 +15,7 @@ const router = createRouter({
         { path: '/contact', component: { template: '<div>Contact</div>' } },
         { path: '/cart', component: { template: '<div>Cart</div>' } },
         { path: '/login', component: { template: '<div>Login</div>' } },
+        { path: '/profile', component: { template: '<div>Profile</div>' } },
     ]
 })
 
@@ -137,5 +139,26 @@ describe('Navbar.vue', () => {
         expect(w4.text()).toContain('No Categories Found')
 
         spy.mockRestore()
+    })
+
+    it('links the user icon to login for guests and to the profile when signed in', async () => {
+        auth.loaded = true
+        auth.user = null
+        const guest = mount(Navbar, { global: { plugins: [router] } })
+        expect(guest.find('[data-test=login-link]').attributes('href')).toBe('/login')
+        expect(guest.find('[data-test=profile-link]').exists()).toBe(false)
+
+        auth.user = { Username: 'jerry' }
+        const member = mount(Navbar, { global: { plugins: [router] } })
+        const link = member.find('[data-test=profile-link]')
+        expect(link.attributes('href')).toBe('/profile')
+        expect(link.text()).toContain('jerry')
+        auth.user = null
+        auth.loaded = false
+    })
+
+    it('marks /profile as login-only', async () => {
+        const { routes } = await import('../src/router')
+        expect(routes.find((r) => r.path === '/profile').meta.auth).toBe(true)
     })
 })

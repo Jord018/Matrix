@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
 import { api } from "../api";
+import { auth, loadUser } from "../auth";
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -70,6 +71,7 @@ const fetchCategories = async () => {
 
 onMounted(() => {
   fetchCategories();
+  loadUser();
   window.addEventListener("click", closeCategory);
 });
 
@@ -191,11 +193,23 @@ const search = () => {
           </span>
         </router-link>
 
-        <!-- User / Login Icon -->
+        <!-- User: profile when signed in (name shown on desktop), otherwise login -->
         <router-link
+          v-if="auth.user"
+          to="/profile"
+          class="text-white flex items-center gap-2 font-bold transition-all duration-200 hover:scale-105 hover:text-accent-yellow"
+          title="My Profile"
+          data-test="profile-link"
+        >
+          <i class="fa-regular fa-circle-user text-2xl"></i>
+          <span class="hidden lg:inline">{{ auth.user.Username }}</span>
+        </router-link>
+        <router-link
+          v-else
           to="/login"
           class="text-white text-xl transition-all duration-200 hover:scale-110 hover:text-accent-yellow"
           title="Login"
+          data-test="login-link"
         >
           <i class="fa-solid fa-user"></i>
         </router-link>

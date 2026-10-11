@@ -18,6 +18,7 @@ import Purchase from '../pages/Purchase.vue';
 import Success from '../pages/Success.vue';
 import MyKeys from '../pages/MyKeys.vue';
 import Contact from '../pages/Contact.vue';
+import Profile from '../pages/Profile.vue';
 import { auth, loadUser, isAdmin } from '../auth';
 
 export const routes = [
@@ -31,6 +32,7 @@ export const routes = [
     { path: '/checkout', component: Purchase, meta: { auth: true } },
     { path: '/success', component: Success, meta: { auth: true } },
     { path: '/my-keys', component: MyKeys, meta: { auth: true } },
+    { path: '/profile', component: Profile, meta: { auth: true } },
     { path: '/contact', component: Contact },
     {
         path: '/admin',

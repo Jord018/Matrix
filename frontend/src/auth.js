@@ -30,13 +30,6 @@ export async function requireLogin(router, redirect) {
     return false;
 }
 
-// The backend signs the new account in, so treat it like a login.
-export async function register(form) {
-    auth.user = await api('/register', { method: 'POST', body: JSON.stringify(form) });
-    auth.loaded = true;
-    return auth.user;
-}
-
 export async function logout() {
     await api('/logout', { method: 'POST' });
     auth.user = null;
