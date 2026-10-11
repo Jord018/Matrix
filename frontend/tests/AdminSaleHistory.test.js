@@ -36,8 +36,8 @@ describe('AdminSaleHistory', () => {
     it('colours the status badge', async () => {
         const w = await page(ORDERS);
         const badges = w.findAll('[data-test=order-row] td:last-child span');
-        expect(badges[0].classes()).toContain('bg-green-600');
-        expect(badges[1].classes()).toContain('bg-yellow-400');
+        expect(badges[0].classes()).toContain('bg-[#198754]');
+        expect(badges[1].classes()).toContain('bg-[#ffc107]');
     });
 
     it('renders mobile cards too', async () => {

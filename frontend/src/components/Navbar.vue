@@ -89,7 +89,7 @@ const search = () => {
 
 <template>
   <nav class="sticky top-0 z-50 custom-navbar bg-primary shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
-    <div class="container mx-auto px-4 flex justify-between items-center py-2">
+    <div class="store-container flex justify-between items-center py-2">
       <!-- Left side: Brand + Nav Links (Category, Contact) -->
       <div class="flex items-center">
         <!-- Logo & Brand -->

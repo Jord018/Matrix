@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { useCartStore } from '../src/stores/cart'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 import Profile from '../src/pages/Profile.vue'
@@ -15,6 +17,7 @@ const makeRouter = () => createRouter({
 })
 
 describe('Profile.vue', () => {
+    beforeEach(() => setActivePinia(createPinia()))
     afterEach(() => { vi.restoreAllMocks(); auth.user = null })
 
     it('shows the account and every purchased key', async () => {
@@ -40,8 +43,9 @@ describe('Profile.vue', () => {
         expect(wrapper.find('[data-test=empty]').text()).toContain('No purchases yet!')
     })
 
-    it('logs out and goes to /login', async () => {
+    it('logs out, empties the cart and goes to /login', async () => {
         auth.user = { Username: 'jerry' }
+        useCartStore().addToCart({ id: 'g1', price: 10 }, 1)
         const router = makeRouter()
         const spy = vi.spyOn(apiModule, 'api').mockResolvedValue([])
         const wrapper = mount(Profile, { global: { plugins: [router] } })
@@ -50,6 +54,7 @@ describe('Profile.vue', () => {
         await flushPromises()
         expect(spy).toHaveBeenCalledWith('/logout', { method: 'POST' })
         expect(auth.user).toBeNull()
+        expect(useCartStore().items).toEqual([])
         expect(router.currentRoute.value.path).toBe('/login')
     })
 })

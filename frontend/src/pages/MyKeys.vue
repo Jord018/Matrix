@@ -20,7 +20,7 @@ const copyKey = async (keyString) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-6 mb-12 min-h-[60vh] max-w-[800px]">
+  <div class="store-container mt-12 mb-12 min-h-[60vh] max-w-[800px]">
     <h2 class="mb-4 text-3xl font-extrabold text-primary">
       <i class="fa-solid fa-key me-2"></i> Your Game Keys
     </h2>
@@ -94,7 +94,7 @@ const copyKey = async (keyString) => {
       <p class="text-gray-400 mb-6">You haven't purchased anything yet!</p>
       <router-link
         to="/"
-        class="bg-primary text-white font-bold px-6 py-2.5 rounded-lg inline-block transition-colors hover:bg-secondary"
+        class="bg-[#0d6efd] text-white px-3 py-1.5 rounded-md inline-block transition-colors hover:bg-[#0b5ed7]"
       >
         Go Shopping
       </router-link>

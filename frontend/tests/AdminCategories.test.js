@@ -42,15 +42,15 @@ describe('AdminCategories', () => {
         expect(rows).toHaveLength(2);
         expect(rows[0].text()).toContain('RPG');
         expect(rows[0].find('a').attributes('href')).toBe('/admin/back-category/RPG');
-        expect(rows[0].find('[data-test=eye]').text()).toBe('👁');
-        expect(rows[1].find('[data-test=eye]').text()).toBe('🚫');
+        expect(rows[0].find('[data-test=eye] i').classes()).toContain('fa-eye');
+        expect(rows[1].find('[data-test=eye] i').classes()).toContain('fa-eye-slash');
         expect(w.findAll('[data-test=cat-card]')).toHaveLength(2);
     });
 
     it('toggles visibility optimistically and persists it', async () => {
         const { w, f } = await page(json({}));
         await w.find('[data-test=eye]').trigger('click');
-        expect(w.find('[data-test=eye]').text()).toBe('🚫');
+        expect(w.find('[data-test=eye] i').classes()).toContain('fa-eye-slash');
         await flushPromises();
         expect(f.mock.calls[1][0]).toBe('/api/admin/categories/c1/visibility');
         expect(f.mock.calls[1][1].method).toBe('PATCH');
@@ -63,7 +63,7 @@ describe('AdminCategories', () => {
         const { w } = await page(json({}, false, 500));
         await w.find('[data-test=eye]').trigger('click');
         await flushPromises();
-        expect(w.find('[data-test=eye]').text()).toBe('👁');
+        expect(w.find('[data-test=eye] i').classes()).toContain('fa-eye');
         expect(alert).toHaveBeenCalled();
     });
 
@@ -142,6 +142,26 @@ describe('AdminCategoryGames', () => {
         expect(w.find('h1').text()).toBe('Category: RPG');
         expect(w.find('[data-test=game]').text()).toContain('Zelda');
         expect(w.find('a[href="/admin/edit-game/g1"]').exists()).toBe(true);
+    });
+
+    it('shows a loading message until the games arrive', async () => {
+        let release;
+        const f = vi.fn().mockResolvedValueOnce(json(CATS())).mockReturnValueOnce(new Promise((r) => { release = r; }));
+        vi.stubGlobal('fetch', f);
+        const w = await mountAt(AdminCategoryGames, '/admin/back-category/RPG', '/admin/back-category/:name');
+        await flushPromises();
+        expect(w.find('[data-test=loading]').exists()).toBe(true);
+        expect(w.find('[data-test=empty]').exists()).toBe(false);
+        release(json(GAMES));
+        await flushPromises();
+        expect(w.find('[data-test=loading]').exists()).toBe(false);
+        expect(w.findAll('[data-test=game]')).toHaveLength(1);
+    });
+
+    it('says so when loading the games fails', async () => {
+        const { w } = await view('RPG', json(CATS()), json({}, false, 500));
+        expect(w.find('[data-test=error]').exists()).toBe(true);
+        expect(w.find('[data-test=empty]').exists()).toBe(false);
     });
 
     it('shows an empty state for an unknown category', async () => {

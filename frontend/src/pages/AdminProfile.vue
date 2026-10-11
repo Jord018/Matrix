@@ -1,26 +1,31 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { auth, logout } from '../auth'
+import { useCartStore } from '../stores/cart'
 
 const router = useRouter()
+const cartStore = useCartStore()
 const signOut = async () => {
   await logout()
+  cartStore.reset()
   router.push('/login')
 }
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8 flex justify-center">
-    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6 text-center">
-      <h1 class="text-2xl font-bold text-primary" data-test="name">{{ auth.user?.Username }}</h1>
-      <p class="text-accent-yellow font-bold mb-4" data-test="role">{{ (auth.user?.Role || '').toUpperCase() }}</p>
+  <div class="store-container flex justify-center">
+    <div class="admin-profile-card w-full max-w-[465px]">
+      <div class="admin-avatar"></div>
+      <h1 class="admin-name" data-test="name">{{ auth.user?.Username }}</h1>
+      <div class="admin-role" data-test="role">{{ (auth.user?.Role || '').toUpperCase() }}</div>
 
-      <dl class="text-left space-y-2 mb-6">
-        <div class="flex justify-between"><dt class="text-gray-500">Account Name</dt><dd>{{ auth.user?.Username }}</dd></div>
-        <div class="flex justify-between"><dt class="text-gray-500">System Access</dt><dd>Back-Office Full</dd></div>
-      </dl>
+      <div class="admin-details">
+        <div class="admin-info-item"><span class="info-label">Account Name</span><span class="info-value">{{ auth.user?.Username }}</span></div>
+        <div class="admin-info-item"><span class="info-label">System Access</span><span class="info-value">Back-Office Full</span></div>
+        <div class="admin-info-item"><span class="info-label">Server Status</span><span class="info-value !text-emerald-500">Online</span></div>
+      </div>
 
-      <button type="button" class="w-full bg-accent-red text-white font-bold rounded py-2" @click="signOut">logout</button>
+      <button type="button" class="btn-admin-logout" @click="signOut">logout</button>
     </div>
   </div>
 </template>

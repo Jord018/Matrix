@@ -58,8 +58,13 @@ class CatalogController extends Controller
             $query = Game::query();
 
             if ($search = $request->query('q') ?? $request->query('search')) {
-                $like = '%'.addcslashes(mb_strtolower((string) $search), '\%_').'%';
-                $query->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like]);
+                // '!' as the LIKE escape: pgsql PDO reads '\' as an escaped quote and loses the next "?".
+                $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower((string) $search)).'%';
+                // Like the old store: match the name or any category name.
+                $query->whereRaw(
+                    "(LOWER(name) LIKE ? ESCAPE '!' OR LOWER(CAST(categories AS TEXT)) LIKE ? ESCAPE '!')",
+                    [$like, $like]
+                );
             }
 
             if ($category = $request->query('category')) {

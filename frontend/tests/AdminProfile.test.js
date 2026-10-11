@@ -4,11 +4,13 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import AdminProfile from '../src/pages/AdminProfile.vue';
 import { adminGuard, routes } from '../src/router';
 import { auth } from '../src/auth';
+import { createPinia, setActivePinia } from 'pinia';
 
 document.cookie = 'XSRF-TOKEN=t; path=/';
 const blank = { template: '<div/>' };
 
 beforeEach(() => {
+    setActivePinia(createPinia());
     auth.user = { Username: 'jerry', Role: 'admin' };
     auth.loaded = true;
 });

@@ -83,7 +83,7 @@ const buyNow = async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-6 mb-12 min-h-[60vh] max-w-7xl">
+  <div class="store-container mt-6 mb-12 min-h-[60vh]">
     <!-- Skeleton Loaders -->
     <div v-if="loading" class="animate-pulse">
       <div class="h-6 bg-white/10 rounded w-1/3 mb-8"></div>
@@ -195,7 +195,7 @@ const buyNow = async () => {
             class="rounded shadow-sm mb-4 self-start max-h-[250px] w-auto border-2 border-primary"
           />
 
-          <h1 class="font-extrabold mb-2 text-primary text-4xl">
+          <h1 class="font-bold mb-2 text-primary text-[2.5rem] leading-tight">
             {{ game.name }}
           </h1>
           <div class="text-primary text-[2.5rem] font-extrabold mb-4">

@@ -44,7 +44,8 @@ defineProps({ title: { type: String, required: true } })
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: auth-pop 1s cubic-bezier(0.25, 1, 0.5, 1) both;
+  /* backwards, not both: a kept opacity/transform would stop the brand panel blur */
+  animation: auth-pop 1s cubic-bezier(0.25, 1, 0.5, 1) backwards;
 }
 
 .form-side {

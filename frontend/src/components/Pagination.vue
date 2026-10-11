@@ -9,6 +9,11 @@ const props = defineProps({
   totalPages: {
     type: Number,
     required: true
+  },
+  // Category/search pages in the old store listed every page with « »; home used the short form.
+  full: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -21,6 +26,7 @@ const pages = computed(() => {
   const items = [];
 
   if (total <= 1) return items;
+  if (props.full) return Array.from({ length: total }, (_, i) => i + 1);
 
   for (let i = 1; i <= total; i++) {
     // แสดงหน้า 1, หน้าสุดท้าย, และหน้าก่อน/หลัง หน้าปัจจุบัน 1 หน้า
@@ -55,7 +61,8 @@ const changePage = (page) => {
           :class="currentPage === 1 ? 'text-gray-300 bg-transparent cursor-default' : 'text-primary hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-sm'"
           aria-label="Previous Page"
         >
-          <i class="fa-solid fa-chevron-left"></i>
+          <span v-if="full">&laquo;</span>
+          <i v-else class="fa-solid fa-chevron-left"></i>
         </button>
       </li>
 
@@ -94,7 +101,8 @@ const changePage = (page) => {
           :class="currentPage === totalPages ? 'text-gray-300 bg-transparent cursor-default' : 'text-primary hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-sm'"
           aria-label="Next Page"
         >
-          <i class="fa-solid fa-chevron-right"></i>
+          <span v-if="full">&raquo;</span>
+          <i v-else class="fa-solid fa-chevron-right"></i>
         </button>
       </li>
     </ul>

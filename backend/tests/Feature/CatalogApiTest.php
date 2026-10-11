@@ -143,6 +143,17 @@ class CatalogApiTest extends TestCase
             ->assertJsonPath('0.name', 'Cyberpunk 2077');
     }
 
+    public function test_search_also_matches_category_names_like_the_old_store(): void
+    {
+        Game::create(['name' => 'Hades', 'price' => 10, 'stock' => 5, 'categories' => ['Roguelike']]);
+        Game::create(['name' => 'Tetris', 'price' => 10, 'stock' => 5, 'categories' => ['Puzzle']]);
+
+        $this->getJson('/api/search?q=rogue')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.name', 'Hades');
+    }
+
     public function test_get_games_supports_limit_and_pagination(): void
     {
         Game::create(['name' => 'Game A', 'price' => 10, 'stock' => 5]);

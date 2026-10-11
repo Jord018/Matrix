@@ -16,15 +16,14 @@ const cartStore = useCartStore();
 const currentPage = ref(1);
 const itemsPerPage = 15; // อิงตามโปรเจกต์เดิม
 
-// คำนวณหัวข้อหน้า (Title) จาก Path หรือ Query
-const pageTitle = computed(() => {
+// Like the old category.ejs: breadcrumb shows the label, heading adds " Games".
+const pageLabel = computed(() => {
   if (route.path === "/search") {
     return `Search Results for: "${route.query.q || ""}"`;
-  } else if (route.params.name) {
-    return `${route.params.name} Games`;
   }
-  return "All Games";
+  return route.params.name || "All";
 });
+const pageTitle = computed(() => `${pageLabel.value} Games`);
 
 // คำนวณจำนวนหน้าทั้งหมด
 const totalPages = computed(() => {
@@ -93,26 +92,26 @@ const handleAddToCart = async (payload) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-6 mb-12 min-h-[60vh] max-w-7xl">
+  <div class="store-container mt-6 mb-12 min-h-[60vh]">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
-      <ol class="flex items-center space-x-2 text-sm">
+      <ol class="flex items-center space-x-2">
         <li>
           <router-link to="/" class="text-secondary hover:text-accent-red transition-colors no-underline font-medium">Home</router-link>
         </li>
-        <li class="text-gray-400">/</li>
-        <li class="font-semibold text-gray-400" aria-current="page">
-          {{ pageTitle }}
+        <li class="text-[#6c757d]">/</li>
+        <li class="text-[#6c757d]" aria-current="page">
+          {{ pageLabel }}
         </li>
       </ol>
     </nav>
 
     <!-- Header Section -->
     <div class="flex justify-between items-center mb-6">
-      <h1 class="font-bold text-[2rem] text-primary border-b-[3px] border-accent-yellow inline-block pb-2">
+      <h1 class="font-bold text-[2.5rem] leading-tight text-primary border-b-[3px] border-accent-yellow inline-block pb-2">
         {{ pageTitle }}
       </h1>
-      <span class="text-gray-400 font-medium">{{ games.length }} products found</span>
+      <span class="text-[#6c757d]">{{ games.length }} products found</span>
     </div>
 
     <!-- Skeletons -->
@@ -143,6 +142,7 @@ const handleAddToCart = async (payload) => {
       </div>
 
       <Pagination
+        full
         v-if="totalPages > 1"
         :current-page="currentPage"
         :total-pages="totalPages"
