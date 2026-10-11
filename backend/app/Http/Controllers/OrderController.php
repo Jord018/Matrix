@@ -54,14 +54,13 @@ class OrderController extends Controller
                 ];
             }
 
+            // Route requires login; the order always belongs to the signed-in account.
             $user = $request->user();
-            $userId = $request->validated('userId') ?? $user?->id ?? 'guest';
-            $username = $request->validated('username') ?? $user?->Username ?? $user?->username ?? 'guest';
 
             return Order::create([
                 'id' => $this->generateOrderId(),
-                'userId' => (string) $userId,
-                'username' => (string) $username,
+                'userId' => (string) $user->id,
+                'username' => (string) $user->Username,
                 'items' => $orderItems,
                 'purchaseDate' => now(),
                 'status' => 'completed',

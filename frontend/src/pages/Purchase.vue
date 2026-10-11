@@ -34,7 +34,6 @@ const confirmPurchase = async () => {
         gameId: item.game.id || item.game._id,
         amount: item.quantity,
       })),
-      username: "Guest",
     };
 
     const res = await api("/orders", {
