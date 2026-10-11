@@ -21,6 +21,7 @@ describe('Home.vue', () => {
         setActivePinia(createPinia())
         // Mock scrollIntoView ที่ถูกเรียกตอนเปลี่ยนหน้า
         Element.prototype.scrollIntoView = vi.fn()
+        apiModule.clearApiCache()
     })
 
     afterEach(() => {
@@ -122,5 +123,19 @@ describe('Home.vue', () => {
 
         expect(wrapper.text()).toContain('Wrapped Game')
         expect(wrapper.find('img[alt="Wrapped HL"]').exists()).toBe(true)
+    })
+
+    it('instantly renders games from cached snapshot before API responds', async () => {
+        apiModule.setCachedData('/games', [{ id: 'snap1', name: 'Instant Snapshot Game', price: 99, coverImage: '/snap.png' }])
+        apiModule.setCachedData('/highlights', [{ id: 'hsnap', gameId: 'snap1', name: 'Instant HL', customImage: '/shl.png' }])
+
+        // API hangs / delays
+        vi.spyOn(apiModule, 'api').mockReturnValue(new Promise(() => {}))
+
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+
+        // Snapshot is immediately rendered without waiting for API
+        expect(wrapper.text()).toContain('Instant Snapshot Game')
+        expect(wrapper.find('img[alt="Instant HL"]').exists()).toBe(true)
     })
 })

@@ -12,9 +12,18 @@ const xsrf = () => {
     return null;
 };
 
+export const trimTrailingSlashes = (str) => {
+    if (typeof str !== 'string') return '';
+    let end = str.length;
+    while (end > 0 && str.charCodeAt(end - 1) === 47 /* '/' */) {
+        end--;
+    }
+    return str.slice(0, end);
+};
+
 export const getBaseUrl = (env = import.meta.env) => {
     if (typeof window !== 'undefined' && window.__API_BASE_URL__) {
-        return window.__API_BASE_URL__.replace(/\/+$/, '');
+        return trimTrailingSlashes(window.__API_BASE_URL__);
     }
     // In test environment, default to relative '/api' unless overridden for test mock consistency
     if (env?.MODE === 'test') {
@@ -22,7 +31,7 @@ export const getBaseUrl = (env = import.meta.env) => {
     }
     const envBase = env?.VITE_API_BASE_URL;
     if (typeof envBase === 'string' && envBase.trim()) {
-        return envBase.trim().replace(/\/+$/, '');
+        return trimTrailingSlashes(envBase.trim());
     }
     return '/api';
 };
@@ -32,7 +41,7 @@ export const formatEndpoint = (path, baseUrl = getBaseUrl()) => {
         return path;
     }
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    const base = baseUrl.replace(/\/+$/, '');
+    const base = trimTrailingSlashes(baseUrl);
 
     // Prevent duplicate /api when base ends with /api and cleanPath starts with /api
     if (base.endsWith('/api') && cleanPath.startsWith('/api/')) {
@@ -44,9 +53,51 @@ export const formatEndpoint = (path, baseUrl = getBaseUrl()) => {
     return `${base}${cleanPath}`;
 };
 
+const safeStorage = {
+    getItem(key) {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                return window.localStorage.getItem(key);
+            }
+        } catch {
+            // Ignore storage access errors
+        }
+        return null;
+    },
+    setItem(key, value) {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                window.localStorage.setItem(key, value);
+            }
+        } catch {
+            // Ignore storage quota or access errors
+        }
+    },
+    clearSnapshotKeys(prefix) {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                const keysToRemove = [];
+                for (let i = 0; i < window.localStorage.length; i++) {
+                    const k = window.localStorage.key(i);
+                    if (k && k.startsWith(prefix)) {
+                        keysToRemove.push(k);
+                    }
+                }
+                for (const k of keysToRemove) {
+                    window.localStorage.removeItem(k);
+                }
+            }
+        } catch {
+            // Ignore
+        }
+    }
+};
+
 const apiCache = new Map();
 const inFlightRequests = new Map();
 const DEFAULT_CACHE_TTL = 30000; // 30 seconds
+const DEFAULT_STORAGE_TTL = 300000; // 5 minutes in localStorage for instant reload
+const CACHE_STORAGE_PREFIX = 'api_cache:';
 const CATALOG_ROUTES = /^\/?(categories|highlights|games|search)($|[\/?])/i;
 
 export const isCacheableRequest = (path, method = 'GET', options = {}) => {
@@ -61,6 +112,35 @@ export const isCacheableRequest = (path, method = 'GET', options = {}) => {
 export const clearApiCache = () => {
     apiCache.clear();
     inFlightRequests.clear();
+    safeStorage.clearSnapshotKeys(CACHE_STORAGE_PREFIX);
+};
+
+export const getCachedData = (path, maxAge = DEFAULT_STORAGE_TTL) => {
+    const url = formatEndpoint(path);
+    const mem = apiCache.get(url);
+    if (mem && Date.now() - mem.timestamp < maxAge) {
+        return mem.data;
+    }
+    const raw = safeStorage.getItem(`${CACHE_STORAGE_PREFIX}${url}`);
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed.timestamp === 'number' && Date.now() - parsed.timestamp < maxAge) {
+                apiCache.set(url, { data: parsed.data, timestamp: parsed.timestamp });
+                return parsed.data;
+            }
+        } catch {
+            // Ignore JSON parse errors
+        }
+    }
+    return null;
+};
+
+export const setCachedData = (path, data) => {
+    const url = formatEndpoint(path);
+    const entry = { data, timestamp: Date.now() };
+    apiCache.set(url, entry);
+    safeStorage.setItem(`${CACHE_STORAGE_PREFIX}${url}`, JSON.stringify(entry));
 };
 
 export async function api(path, options = {}) {
@@ -71,7 +151,7 @@ export async function api(path, options = {}) {
     // Sanctum SPA auth: unsafe methods need the CSRF cookie echoed back as a header.
     if (method !== 'GET') {
         // Any mutation invalidates cached GET responses
-        apiCache.clear();
+        clearApiCache();
 
         if (!xsrf()) {
             const csrfUrl = baseUrl.startsWith('http')
@@ -87,10 +167,10 @@ export async function api(path, options = {}) {
     const isCacheable = isCacheableRequest(path, method, options);
     const ttl = options.cacheTtl ?? DEFAULT_CACHE_TTL;
 
-    if (isCacheable) {
-        const cached = apiCache.get(url);
-        if (cached && Date.now() - cached.timestamp < ttl) {
-            return cached.data;
+    if (isCacheable && !options.forceRefresh) {
+        const cached = getCachedData(path, ttl);
+        if (cached !== null) {
+            return cached;
         }
         if (inFlightRequests.has(url)) {
             return inFlightRequests.get(url);
@@ -109,7 +189,7 @@ export async function api(path, options = {}) {
             }
             const data = await res.json();
             if (isCacheable) {
-                apiCache.set(url, { data, timestamp: Date.now() });
+                setCachedData(path, data);
             }
             return data;
         } finally {

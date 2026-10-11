@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { api, clearApiCache, formatEndpoint, getBaseUrl } from '../src/api';
+import { api, clearApiCache, formatEndpoint, getBaseUrl, getCachedData, setCachedData, trimTrailingSlashes } from '../src/api';
 
 afterEach(() => {
     vi.unstubAllGlobals();
@@ -164,5 +164,29 @@ describe('api() and helpers', () => {
         const after = await api('/games');
         expect(after).toEqual({ count: 2 });
         expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('trims trailing slashes safely without ReDoS', () => {
+        expect(trimTrailingSlashes('http://localhost:8000/api///')).toBe('http://localhost:8000/api');
+        expect(trimTrailingSlashes('/api/')).toBe('/api');
+        expect(trimTrailingSlashes('/api')).toBe('/api');
+        expect(trimTrailingSlashes('')).toBe('');
+        expect(trimTrailingSlashes(null)).toBe('');
+    });
+
+    it('persists and restores cached data from localStorage', () => {
+        setCachedData('/games', [{ id: 'g1', name: 'Cached Game' }]);
+        const restored = getCachedData('/games');
+        expect(restored).toEqual([{ id: 'g1', name: 'Cached Game' }]);
+
+        clearApiCache();
+        expect(getCachedData('/games')).toBeNull();
+    });
+
+    it('returns null if cached data in localStorage is expired', () => {
+        setCachedData('/games', [{ id: 'g1' }]);
+        // Expired maxAge = 0
+        const expired = getCachedData('/games', 0);
+        expect(expired).toBeNull();
     });
 });

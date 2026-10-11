@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { api } from "../api";
+import { api, getCachedData, setCachedData } from "../api";
 import HighlightCarousel from "../components/HighlightCarousel.vue";
 import GameCard from "../components/GameCard.vue";
 import Pagination from "../components/Pagination.vue";
@@ -11,11 +11,16 @@ import { requireLogin } from "../auth";
 const cartStore = useCartStore();
 const router = useRouter();
 
-const highlights = ref([]);
-const allGames = ref([]);
+// SWR Snapshot: โหลดข้อมูลจาก LocalStorage ทันทีตั้งแต่เสี้ยววินาทีแรก (0ms)
+const initialGames = getCachedData("/games");
+const initialHighlights = getCachedData("/highlights");
+
+const highlights = ref(Array.isArray(initialHighlights) ? initialHighlights : []);
+const allGames = ref(Array.isArray(initialGames) ? initialGames : []);
 const currentPage = ref(1);
 const itemsPerPage = 15; // อิงตามโปรเจกต์เดิม
-const loading = ref(true);
+// ถ้ามีข้อมูล Snapshot ในแคชอยู่แล้ว ไม่ต้องแสดง Skeleton
+const loading = ref(allGames.value.length === 0);
 
 // คำนวณจำนวนหน้าทั้งหมด
 const totalPages = computed(() => {
@@ -31,21 +36,38 @@ const paginatedGames = computed(() => {
   return allGames.value.slice(start, end);
 });
 
-// ดึงข้อมูลเกมและไฮไลท์จาก API
+const extractArrayData = (res) => {
+  if (Array.isArray(res)) return res;
+  if (res?.data && Array.isArray(res.data)) return res.data;
+  return [];
+};
+
+// ดึงข้อมูลเกมและไฮไลท์จาก API ในพื้นหลัง (Stale-While-Revalidate)
 const fetchHomeData = async () => {
   try {
-    loading.value = true;
+    if (allGames.value.length === 0) {
+      loading.value = true;
+    }
     const [gamesRes, highlightsRes] = await Promise.all([
-      api("/games").catch(() => []),
-      api("/highlights").catch(() => []),
+      api("/games", { forceRefresh: true }).catch(() => null),
+      api("/highlights", { forceRefresh: true }).catch(() => null),
     ]);
 
-    allGames.value = Array.isArray(gamesRes)
-      ? gamesRes
-      : (gamesRes?.data && Array.isArray(gamesRes.data) ? gamesRes.data : []);
-    highlights.value = Array.isArray(highlightsRes)
-      ? highlightsRes
-      : (highlightsRes?.data && Array.isArray(highlightsRes.data) ? highlightsRes.data : []);
+    if (gamesRes !== null) {
+      const freshGames = extractArrayData(gamesRes);
+      allGames.value = freshGames;
+      if (freshGames.length > 0) {
+        setCachedData("/games", freshGames);
+      }
+    }
+
+    if (highlightsRes !== null) {
+      const freshHighlights = extractArrayData(highlightsRes);
+      highlights.value = freshHighlights;
+      if (freshHighlights.length > 0) {
+        setCachedData("/highlights", freshHighlights);
+      }
+    }
   } catch (error) {
     console.error("Failed to fetch home data:", error);
   } finally {
