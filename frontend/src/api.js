@@ -21,12 +21,17 @@ export const trimTrailingSlashes = (str) => {
     return str.slice(0, end);
 };
 
-export const getBaseUrl = (env = import.meta.env) => {
-    if (typeof window !== 'undefined' && window.__API_BASE_URL__) {
-        return trimTrailingSlashes(window.__API_BASE_URL__);
+export const getBaseUrl = (env = import.meta.env, win = typeof window !== 'undefined' ? window : null) => {
+    if (win?.__API_BASE_URL__) {
+        return trimTrailingSlashes(win.__API_BASE_URL__);
     }
     // In test environment, default to relative '/api' unless overridden for test mock consistency
     if (env?.MODE === 'test') {
+        return '/api';
+    }
+    // In dev server, always prefer same-origin proxy to ensure Sanctum cookies and CSRF work seamlessly
+    const port = win?.location?.port;
+    if (env?.DEV && (port === '5173' || port === '5174')) {
         return '/api';
     }
     const envBase = env?.VITE_API_BASE_URL;
@@ -118,71 +123,8 @@ export const clearApiCache = () => {
 // - same browser: a save writes CATALOG_CHANGED_KEY, and browsers fire "storage" events in the *other* tabs;
 // - another browser or account (admin and customer can't share one session): poll /catalog-version,
 //   which the server changes on every save.
-const CATALOG_CHANGED_KEY = 'catalog:changed';
-const VERSION_POLL_MS = 500;
-const changeListeners = new Set();
-let pollTimer = null;
-let lastVersion = null;
-
-const notifyCatalogChange = () => {
-    inFlightRequests.clear(); // a refresh must not join a request that started before the change
-    changeListeners.forEach((run) => void run());
-};
-
-const onStorage = (e) => {
-    if (e.key === CATALOG_CHANGED_KEY) notifyCatalogChange();
-};
-
-const checkCatalogVersion = async () => {
-    if (document.visibilityState === 'hidden') return;
-    try {
-        const { version } = await api('/catalog-version');
-        if (lastVersion !== null && version !== lastVersion) notifyCatalogChange();
-        lastVersion = version;
-    } catch {
-        // Server restarting or offline: the next tick tries again.
-    }
-};
-
-export const onCatalogChange = (cb) => {
-    // One refresh at a time; changes that land during it trigger exactly one more,
-    // so a burst of clicks in the back office costs two refreshes, not one per click.
-    let running = false;
-    let again = false;
-    const run = async () => {
-        if (running) {
-            again = true;
-            return;
-        }
-        running = true;
-        do {
-            again = false;
-            try {
-                await cb();
-            } catch {
-                // The page shows its own error state.
-            }
-        } while (again);
-        running = false;
-    };
-
-    changeListeners.add(run);
-    if (changeListeners.size === 1) {
-        window.addEventListener('storage', onStorage);
-        document.addEventListener('visibilitychange', checkCatalogVersion);
-        pollTimer = setInterval(checkCatalogVersion, VERSION_POLL_MS);
-        void checkCatalogVersion();
-    }
-    return () => {
-        changeListeners.delete(run);
-        if (changeListeners.size === 0) {
-            window.removeEventListener('storage', onStorage);
-            document.removeEventListener('visibilitychange', checkCatalogVersion);
-            clearInterval(pollTimer);
-            lastVersion = null;
-        }
-    };
-};
+// Real-time polling removed: catalog updates on page refresh.
+export const onCatalogChange = () => () => {};
 
 export const getCachedData = (path, maxAge = DEFAULT_STORAGE_TTL) => {
     const url = formatEndpoint(path);
@@ -247,9 +189,6 @@ export async function api(path, options = {}) {
             if (!res.ok) {
                 const data = await res.json?.().catch(() => null);
                 throw Object.assign(new Error(`API ${res.status}: ${path}`), { status: res.status, data });
-            }
-            if (method !== 'GET') {
-                safeStorage.setItem(CATALOG_CHANGED_KEY, String(Date.now()));
             }
             if (res.status === 204) {
                 return null;

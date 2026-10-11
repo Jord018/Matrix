@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { api, getCachedData, onCatalogChange, setCachedData } from "../api";
+import { ref, computed, onMounted } from "vue";
+import { api, getCachedData, setCachedData } from "../api";
 import HighlightCarousel from "../components/HighlightCarousel.vue";
 import GameCard from "../components/GameCard.vue";
 import Pagination from "../components/Pagination.vue";
@@ -63,12 +63,9 @@ const fetchHomeData = async () => {
   await highlightsDone;
 };
 
-let stopWatchingChanges;
 onMounted(() => {
   fetchHomeData();
-  stopWatchingChanges = onCatalogChange(fetchHomeData);
 });
-onUnmounted(() => stopWatchingChanges?.());
 
 // เมื่อกดเปลี่ยนหน้า
 const handlePageChange = (page) => {

@@ -31,6 +31,12 @@ describe('api() and helpers', () => {
         expect(getBaseUrl({ MODE: 'production', VITE_API_BASE_URL: 'http://localhost:8000/api' })).toBe('http://localhost:8000/api');
         expect(getBaseUrl({ MODE: 'production' })).toBe('/api');
         expect(getBaseUrl({ MODE: 'test' })).toBe('/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '5173' } })).toBe('/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '5174' } })).toBe('/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '8080' } })).toBe('http://localhost:8000/api');
+        expect(getBaseUrl({ DEV: false, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '5173' } })).toBe('http://localhost:8000/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, null)).toBe('http://localhost:8000/api');
+        expect(getBaseUrl(undefined, { __API_BASE_URL__: 'http://localhost:8000/api/' })).toBe('http://localhost:8000/api');
     });
 
     it('supports configured base URL via window override', async () => {
@@ -162,69 +168,10 @@ describe('api() and helpers', () => {
         expect(fetch).toHaveBeenCalledTimes(3);
     });
 
-    it('tells other open tabs when a save succeeds, so the shop refreshes next to the back office', async () => {
-        vi.stubGlobal('fetch', vi.fn()
-            .mockResolvedValueOnce({ ok: false, status: 422, json: () => Promise.resolve({}) })
-            .mockResolvedValueOnce({ ok: true, status: 201, json: () => Promise.resolve({ id: 'h2' }) }));
-        document.cookie = 'XSRF-TOKEN=valid-token; path=/';
-        localStorage.removeItem('catalog:changed');
-
-        await expect(api('/admin/highlights', { method: 'POST', body: '{}' })).rejects.toThrow();
-        expect(localStorage.getItem('catalog:changed')).toBeNull();
-        await api('/admin/highlights', { method: 'POST', body: '{}' });
-        expect(Number(localStorage.getItem('catalog:changed'))).toBeGreaterThan(0);
-    });
-
-    it('onCatalogChange fires only for the change key from another tab, until unsubscribed', () => {
-        const cb = vi.fn();
-        const off = onCatalogChange(cb);
-        window.dispatchEvent(new StorageEvent('storage', { key: 'api_cache:/api/games' }));
-        window.dispatchEvent(new StorageEvent('storage', { key: 'catalog:changed' }));
-        off();
-        window.dispatchEvent(new StorageEvent('storage', { key: 'catalog:changed' }));
-        expect(cb).toHaveBeenCalledTimes(1);
-    });
-
-    it('notices changes made from another browser or account by polling the catalog version', async () => {
-        vi.useFakeTimers();
-        const versions = ['v1', 'v1', 'v2', 'v2'];
-        const fetch = vi.fn((url) => Promise.resolve({
-            ok: true, status: 200,
-            json: () => Promise.resolve(String(url).endsWith('/catalog-version') ? { version: versions.shift() ?? 'v2' } : []),
-        }));
-        vi.stubGlobal('fetch', fetch);
-        const cb = vi.fn();
-        const off = onCatalogChange(cb);
-
-        await vi.advanceTimersByTimeAsync(0);    // first check only records v1
-        await vi.advanceTimersByTimeAsync(500); // v1 again: nothing changed
-        expect(cb).not.toHaveBeenCalled();
-        await vi.advanceTimersByTimeAsync(500); // v2: the admin saved something
-        expect(cb).toHaveBeenCalledTimes(1);
-        await vi.advanceTimersByTimeAsync(500);
-        expect(cb).toHaveBeenCalledTimes(1);
-
-        off();
-        const calls = fetch.mock.calls.length;
-        await vi.advanceTimersByTimeAsync(5000);
-        expect(fetch.mock.calls.length).toBe(calls); // stops polling once nothing listens
-        vi.useRealTimers();
-    });
-
-    it('turns a burst of changes into one extra refresh instead of one per change', async () => {
-        vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {}))); // version check never answers
-        let finish;
-        const cb = vi.fn(() => new Promise((r) => { finish = r; }));
-        const off = onCatalogChange(cb);
-        for (let i = 0; i < 5; i++) window.dispatchEvent(new StorageEvent('storage', { key: 'catalog:changed' }));
-        expect(cb).toHaveBeenCalledTimes(1);
-        finish();
-        await new Promise((r) => setTimeout(r, 0));
-        expect(cb).toHaveBeenCalledTimes(2); // one trailing refresh picks up everything from the burst
-        finish();
-        await new Promise((r) => setTimeout(r, 0));
-        expect(cb).toHaveBeenCalledTimes(2);
-        off();
+    it('provides a safe no-op onCatalogChange unsubscribe function', () => {
+        const off = onCatalogChange(() => {});
+        expect(typeof off).toBe('function');
+        expect(() => off()).not.toThrow();
     });
 
     it('trims trailing slashes safely without ReDoS', () => {
@@ -249,5 +196,18 @@ describe('api() and helpers', () => {
         // Expired maxAge = 0
         const expired = getCachedData('/games', 0);
         expect(expired).toBeNull();
+    });
+
+    it('restores valid cached data from storage when in-memory cache is empty', () => {
+        window.localStorage.setItem('api_cache:/api/saved', JSON.stringify({ data: { restored: true }, timestamp: Date.now() }));
+        expect(getCachedData('/saved')).toEqual({ restored: true });
+    });
+
+    it('handles localStorage throwing errors gracefully', () => {
+        const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('Storage access denied');
+        });
+        expect(getCachedData('/test-error')).toBeNull();
+        getItemSpy.mockRestore();
     });
 });
