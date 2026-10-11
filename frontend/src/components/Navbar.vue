@@ -36,13 +36,7 @@ const closeCategory = (e) => {
   }
 };
 
-const categories = ref([
-  { id: 1, name: "Action" },
-  { id: 2, name: "RPG" },
-  { id: 3, name: "Adventure" },
-  { id: 4, name: "Strategy" },
-  { id: 5, name: "Indie" },
-]);
+const categories = ref([]);
 
 const extractCategoriesFromGames = (games) => {
   const catSet = new Set();
@@ -58,14 +52,16 @@ const extractCategoriesFromGames = (games) => {
 
 const fetchCategories = async () => {
   const res = await api("/categories").catch(() => null);
-  if (Array.isArray(res) && res.length > 0) {
-    categories.value = res.filter((c) => c.isVisible !== false);
+  const list = Array.isArray(res) ? res : (res && Array.isArray(res.data) ? res.data : null);
+  if (Array.isArray(list) && list.length > 0) {
+    categories.value = list.filter((c) => c.isVisible !== false);
     return;
   }
 
   const games = await api("/games").catch(() => []);
-  if (Array.isArray(games) && games.length > 0) {
-    const extracted = extractCategoriesFromGames(games);
+  const gamesList = Array.isArray(games) ? games : (games && Array.isArray(games.data) ? games.data : []);
+  if (Array.isArray(gamesList) && gamesList.length > 0) {
+    const extracted = extractCategoriesFromGames(gamesList);
     if (extracted.length > 0) {
       categories.value = extracted;
     }
