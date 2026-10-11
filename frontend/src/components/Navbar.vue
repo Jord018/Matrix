@@ -66,6 +66,7 @@ const search = () => {
           <li class="relative" @mouseleave="isCategoryOpen = false">
             <button
               @mouseover="isCategoryOpen = true"
+              @focus="isCategoryOpen = true"
               class="text-white font-bold flex items-center hover:text-accent-yellow transition-colors py-2 focus:outline-none"
             >
               <i class="fa-solid fa-gamepad text-accent-yellow mr-2"></i>
