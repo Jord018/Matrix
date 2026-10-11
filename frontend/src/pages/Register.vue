@@ -1,10 +1,11 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { api } from '../api'
+import { useRouter, useRoute } from 'vue-router'
+import { register } from '../auth'
 import AuthLayout from '../components/AuthLayout.vue'
 
 const router = useRouter()
+const route = useRoute()
 const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
 const error = ref('')
 
@@ -16,8 +17,8 @@ const submit = async () => {
     return
   }
   try {
-    await api('/register', { method: 'POST', body: JSON.stringify(form) })
-    router.push('/login')
+    await register(form)
+    router.push(route.query.redirect || '/')
   } catch (e) {
     error.value = e.status === 409 ? 'ชื่อผู้ใช้งานหรืออีเมลนี้ถูกใช้งานแล้ว' : 'ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่'
   }
@@ -47,7 +48,7 @@ const submit = async () => {
         <label for="confirmPassword" class="auth-label">Confirm Password</label>
       </div>
       <p class="auth-subtitle">
-        Already have an account? <RouterLink to="/login">Login here</RouterLink>
+        Already have an account? <RouterLink :to="{ path: '/login', query: route.query }">Login here</RouterLink>
       </p>
       <button type="submit" class="auth-btn">Register</button>
     </form>
