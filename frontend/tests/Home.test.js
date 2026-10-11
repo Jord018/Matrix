@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../src/pages/Home.vue'
 import GameCard from '../src/components/GameCard.vue'
@@ -17,6 +18,7 @@ const router = createRouter({
 
 describe('Home.vue', () => {
     beforeEach(() => {
+        setActivePinia(createPinia())
         // Mock scrollIntoView ที่ถูกเรียกตอนเปลี่ยนหน้า
         Element.prototype.scrollIntoView = vi.fn()
     })
