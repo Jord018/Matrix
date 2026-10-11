@@ -26,48 +26,47 @@ const remove = async (game) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-3xl font-bold text-primary mb-4">Back-Office Game Page</h1>
+  <div class="store-container">
+    <h1 class="page-title">Back-Office Game Page</h1>
 
-    <div v-if="route.query.search" data-test="search-banner" class="mb-4 rounded border border-accent-red bg-primary p-3 text-accent-yellow">
+    <div v-if="route.query.search" data-test="search-banner" class="search-banner">
       Showing search results for: <strong>"{{ route.query.search }}"</strong>
       <router-link to="/admin/back-game" class="ml-3 border border-white text-white rounded px-2 py-0.5 text-sm">Clear Search</router-link>
     </div>
 
-    <table class="hidden md:table w-full text-center bg-white rounded-lg shadow">
+    <table class="admin-table hidden md:table">
       <thead>
-        <tr class="bg-primary text-white">
-          <th class="p-2">Image</th><th>Game name</th><th>Game Price</th><th>Game Stock</th><th>Edit</th><th>Delete</th>
+        <tr>
+          <th>Image</th><th>Game name</th><th>Game Price</th><th>Game Stock</th><th>Edit</th><th>Delete</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="g in games" :key="g.id" data-test="game-row" class="border-b">
-          <td class="p-2"><img :src="g.coverImage" :alt="g.name" class="h-16 mx-auto rounded" /></td>
+        <tr v-for="g in games" :key="g.id" data-test="game-row">
+          <td><img :src="g.coverImage" :alt="g.name" class="game-img" /></td>
           <td>{{ g.name }}</td>
           <td>{{ g.price }} baht</td>
           <td>{{ g.stock }}</td>
-          <td><router-link :to="`/admin/edit-game/${g.id}`" class="bg-accent-yellow text-black rounded px-3 py-1">Edit</router-link></td>
-          <td><button type="button" class="bg-accent-red text-white rounded px-3 py-1" @click="remove(g)">Delete</button></td>
+          <td><router-link :to="`/admin/edit-game/${g.id}`" class="btn-edit">Edit</router-link></td>
+          <td><button type="button" class="btn-delete" @click="remove(g)">Delete</button></td>
         </tr>
       </tbody>
     </table>
 
-    <div class="md:hidden space-y-4">
-      <div v-for="g in games" :key="g.id" data-test="game-card" class="rounded-lg border-2 border-accent-red bg-white overflow-hidden">
-        <img :src="g.coverImage" :alt="g.name" class="w-full h-40 object-cover" />
-        <div class="p-3">
-          <h2 class="font-bold text-lg">{{ g.name }}</h2>
+    <div class="md:hidden">
+      <div v-for="g in games" :key="g.id" data-test="game-card" class="admin-card">
+        <img :src="g.coverImage" :alt="g.name" class="w-full rounded-lg mb-4" />
+        <div>
+          <h2 class="admin-card-title">{{ g.name }}</h2>
           <p>Game Price: {{ g.price }} Baht</p>
           <p>Game Stock: {{ g.stock }}</p>
-          <div class="flex gap-2 mt-2">
-            <router-link :to="`/admin/edit-game/${g.id}`" class="flex-1 text-center bg-accent-yellow rounded px-3 py-1">Edit</router-link>
-            <button type="button" class="flex-1 bg-accent-red text-white rounded px-3 py-1" @click="remove(g)">Delete</button>
+          <div class="flex justify-between gap-2 mt-2">
+            <router-link :to="`/admin/edit-game/${g.id}`" class="btn-edit">Edit</router-link>
+            <button type="button" class="btn-delete" @click="remove(g)">Delete</button>
           </div>
         </div>
       </div>
     </div>
 
-    <router-link to="/admin/add-game" aria-label="Add game"
-                 class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-accent-red text-white text-3xl flex items-center justify-center shadow-lg">+</router-link>
+    <router-link to="/admin/add-game" aria-label="Add game" class="btn-add">+</router-link>
   </div>
 </template>

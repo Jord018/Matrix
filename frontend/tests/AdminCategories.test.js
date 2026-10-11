@@ -42,15 +42,15 @@ describe('AdminCategories', () => {
         expect(rows).toHaveLength(2);
         expect(rows[0].text()).toContain('RPG');
         expect(rows[0].find('a').attributes('href')).toBe('/admin/back-category/RPG');
-        expect(rows[0].find('[data-test=eye]').text()).toBe('👁');
-        expect(rows[1].find('[data-test=eye]').text()).toBe('🚫');
+        expect(rows[0].find('[data-test=eye] i').classes()).toContain('fa-eye');
+        expect(rows[1].find('[data-test=eye] i').classes()).toContain('fa-eye-slash');
         expect(w.findAll('[data-test=cat-card]')).toHaveLength(2);
     });
 
     it('toggles visibility optimistically and persists it', async () => {
         const { w, f } = await page(json({}));
         await w.find('[data-test=eye]').trigger('click');
-        expect(w.find('[data-test=eye]').text()).toBe('🚫');
+        expect(w.find('[data-test=eye] i').classes()).toContain('fa-eye-slash');
         await flushPromises();
         expect(f.mock.calls[1][0]).toBe('/api/admin/categories/c1/visibility');
         expect(f.mock.calls[1][1].method).toBe('PATCH');
@@ -63,7 +63,7 @@ describe('AdminCategories', () => {
         const { w } = await page(json({}, false, 500));
         await w.find('[data-test=eye]').trigger('click');
         await flushPromises();
-        expect(w.find('[data-test=eye]').text()).toBe('👁');
+        expect(w.find('[data-test=eye] i').classes()).toContain('fa-eye');
         expect(alert).toHaveBeenCalled();
     });
 

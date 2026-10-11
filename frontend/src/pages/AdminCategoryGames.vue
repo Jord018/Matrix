@@ -20,18 +20,37 @@ const remove = async (game) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-3xl font-bold text-primary mb-4">Category: {{ route.params.name }}</h1>
+  <div class="store-container">
+    <h1 class="page-title">Category: {{ route.params.name }}</h1>
     <p v-if="!games.length" data-test="empty">No games in this category.</p>
-    <ul class="space-y-3">
-      <li v-for="g in games" :key="g.id" data-test="game" class="flex items-center gap-3 bg-white rounded-lg shadow p-3">
-        <img :src="g.coverImage" :alt="g.name" class="h-14 rounded" />
-        <span class="flex-1 font-bold">{{ g.name }}</span>
-        <span>{{ g.price }} baht</span>
-        <span>Stock {{ g.stock }}</span>
-        <router-link :to="`/admin/edit-game/${g.id}`" class="bg-accent-yellow rounded px-3 py-1">Edit</router-link>
-        <button type="button" class="bg-accent-red text-white rounded px-3 py-1" @click="remove(g)">Delete</button>
-      </li>
-    </ul>
+
+    <table v-else class="admin-table hidden md:table">
+      <thead>
+        <tr><th>Image</th><th>Game name</th><th>Game Price</th><th>Game Stock</th><th>Edit</th><th>Delete</th></tr>
+      </thead>
+      <tbody>
+        <tr v-for="g in games" :key="g.id" data-test="game">
+          <td><img :src="g.coverImage" :alt="g.name" class="game-img" /></td>
+          <td>{{ g.name }}</td>
+          <td>{{ g.price }} baht</td>
+          <td>{{ g.stock }}</td>
+          <td><router-link :to="`/admin/edit-game/${g.id}`" class="btn-edit">Edit</router-link></td>
+          <td><button type="button" class="btn-delete" @click="remove(g)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="md:hidden">
+      <div v-for="g in games" :key="g.id" class="admin-card">
+        <img :src="g.coverImage" :alt="g.name" class="w-full rounded-lg mb-4" />
+        <h2 class="admin-card-title">{{ g.name }}</h2>
+        <p>Game Price: {{ g.price }} Baht</p>
+        <p>Game Stock: {{ g.stock }}</p>
+        <div class="flex justify-between gap-2 mt-2">
+          <router-link :to="`/admin/edit-game/${g.id}`" class="btn-edit">Edit</router-link>
+          <button type="button" class="btn-delete" @click="remove(g)">Delete</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

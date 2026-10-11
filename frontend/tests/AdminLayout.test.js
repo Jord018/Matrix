@@ -36,7 +36,7 @@ describe('AdminLayout', () => {
 
     it('marks the current page link active', async () => {
         const { w } = await mountAt('/admin/back-category');
-        const active = w.findAll('a').filter((a) => a.classes().includes('font-bold') && a.text() === 'Category');
+        const active = w.findAll('a').filter((a) => a.classes().includes('active') && a.text() === 'Category');
         expect(active).toHaveLength(1);
     });
 
