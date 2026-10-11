@@ -15,12 +15,14 @@ const itemsPerPage = 15; // อิงตามโปรเจกต์เดิ�
 const loading = ref(true);
 
 // คำนวณจำนวนหน้าทั้งหมด
-const totalPages = computed(() =>
-  Math.ceil(allGames.value.length / itemsPerPage)
-);
+const totalPages = computed(() => {
+  if (!Array.isArray(allGames.value) || allGames.value.length === 0) return 0;
+  return Math.ceil(allGames.value.length / itemsPerPage);
+});
 
 // ตัด Array ของเกมเพื่อแสดงผลเฉพาะหน้าที่เลือก
 const paginatedGames = computed(() => {
+  if (!Array.isArray(allGames.value)) return [];
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
   return allGames.value.slice(start, end);
@@ -35,8 +37,12 @@ const fetchHomeData = async () => {
       api("/highlights").catch(() => []),
     ]);
 
-    allGames.value = gamesRes || [];
-    highlights.value = highlightsRes || [];
+    allGames.value = Array.isArray(gamesRes)
+      ? gamesRes
+      : (gamesRes?.data && Array.isArray(gamesRes.data) ? gamesRes.data : []);
+    highlights.value = Array.isArray(highlightsRes)
+      ? highlightsRes
+      : (highlightsRes?.data && Array.isArray(highlightsRes.data) ? highlightsRes.data : []);
   } catch (error) {
     console.error("Failed to fetch home data:", error);
   } finally {
