@@ -21,16 +21,17 @@ export const trimTrailingSlashes = (str) => {
     return str.slice(0, end);
 };
 
-export const getBaseUrl = (env = import.meta.env) => {
-    if (typeof window !== 'undefined' && window.__API_BASE_URL__) {
-        return trimTrailingSlashes(window.__API_BASE_URL__);
+export const getBaseUrl = (env = import.meta.env, win = typeof window !== 'undefined' ? window : null) => {
+    if (win?.__API_BASE_URL__) {
+        return trimTrailingSlashes(win.__API_BASE_URL__);
     }
     // In test environment, default to relative '/api' unless overridden for test mock consistency
     if (env?.MODE === 'test') {
         return '/api';
     }
     // In dev server, always prefer same-origin proxy to ensure Sanctum cookies and CSRF work seamlessly
-    if (typeof window !== 'undefined' && env?.DEV && (window.location?.port === '5173' || window.location?.port === '5174')) {
+    const port = win?.location?.port;
+    if (env?.DEV && (port === '5173' || port === '5174')) {
         return '/api';
     }
     const envBase = env?.VITE_API_BASE_URL;

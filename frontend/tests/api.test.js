@@ -31,6 +31,12 @@ describe('api() and helpers', () => {
         expect(getBaseUrl({ MODE: 'production', VITE_API_BASE_URL: 'http://localhost:8000/api' })).toBe('http://localhost:8000/api');
         expect(getBaseUrl({ MODE: 'production' })).toBe('/api');
         expect(getBaseUrl({ MODE: 'test' })).toBe('/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '5173' } })).toBe('/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '5174' } })).toBe('/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '8080' } })).toBe('http://localhost:8000/api');
+        expect(getBaseUrl({ DEV: false, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, { location: { port: '5173' } })).toBe('http://localhost:8000/api');
+        expect(getBaseUrl({ DEV: true, MODE: 'development', VITE_API_BASE_URL: 'http://localhost:8000/api' }, null)).toBe('http://localhost:8000/api');
+        expect(getBaseUrl(undefined, { __API_BASE_URL__: 'http://localhost:8000/api/' })).toBe('http://localhost:8000/api');
     });
 
     it('supports configured base URL via window override', async () => {
@@ -190,5 +196,18 @@ describe('api() and helpers', () => {
         // Expired maxAge = 0
         const expired = getCachedData('/games', 0);
         expect(expired).toBeNull();
+    });
+
+    it('restores valid cached data from storage when in-memory cache is empty', () => {
+        window.localStorage.setItem('api_cache:/api/saved', JSON.stringify({ data: { restored: true }, timestamp: Date.now() }));
+        expect(getCachedData('/saved')).toEqual({ restored: true });
+    });
+
+    it('handles localStorage throwing errors gracefully', () => {
+        const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('Storage access denied');
+        });
+        expect(getCachedData('/test-error')).toBeNull();
+        getItemSpy.mockRestore();
     });
 });
