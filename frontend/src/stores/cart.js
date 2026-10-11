@@ -50,7 +50,10 @@ export const useCartStore = defineStore('cart', () => {
     checkoutType.value = type
     if (type === 'cart') {
       // โคลนข้อมูลตะกร้ามาไว้ที่ checkout เพื่อไม่ให้ผูกกับตะกร้าหลัก (เผื่อแก้ตะกร้าทีหลัง)
-      checkoutItems.value = JSON.parse(JSON.stringify(items.value))
+      checkoutItems.value = items.value.map(item => ({
+        game: { ...item.game },
+        quantity: item.quantity
+      }))
     } else if (type === 'single' && game) {
       checkoutItems.value = [{ game, quantity: amount }]
     }
