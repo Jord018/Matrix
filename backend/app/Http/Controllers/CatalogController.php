@@ -51,7 +51,7 @@ class CatalogController extends Controller
      */
     public function games(Request $request): JsonResponse
     {
-        $cacheKey = 'catalog.games.'.md5($request->fullUrl());
+        $cacheKey = 'catalog.games.'.hash('sha256', $request->fullUrl());
 
         $data = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
             $query = Game::query();

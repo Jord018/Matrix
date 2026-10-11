@@ -52,7 +52,7 @@ class CatalogCacheTest extends TestCase
         $res1 = $this->getJson('/api/games');
         $res1->assertOk()->assertJsonCount(1);
 
-        $cacheKey = 'catalog.games.'.md5(url('/api/games'));
+        $cacheKey = 'catalog.games.'.hash('sha256', url('/api/games'));
         $this->assertTrue(Cache::has($cacheKey));
 
         Game::create(['name' => 'Game 2', 'price' => 20, 'stock' => 5]);
