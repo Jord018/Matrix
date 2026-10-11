@@ -5,10 +5,17 @@ use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\HighlightController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CatalogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => ['status' => 'ok']);
+
+Route::get('/categories', [CatalogController::class, 'categories']);
+Route::get('/highlights', [CatalogController::class, 'highlights']);
+Route::get('/games', [CatalogController::class, 'games']);
+Route::get('/games/{id}', [CatalogController::class, 'game']);
+Route::get('/search', [CatalogController::class, 'games']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
