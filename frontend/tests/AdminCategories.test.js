@@ -144,6 +144,26 @@ describe('AdminCategoryGames', () => {
         expect(w.find('a[href="/admin/edit-game/g1"]').exists()).toBe(true);
     });
 
+    it('shows a loading message until the games arrive', async () => {
+        let release;
+        const f = vi.fn().mockResolvedValueOnce(json(CATS())).mockReturnValueOnce(new Promise((r) => { release = r; }));
+        vi.stubGlobal('fetch', f);
+        const w = await mountAt(AdminCategoryGames, '/admin/back-category/RPG', '/admin/back-category/:name');
+        await flushPromises();
+        expect(w.find('[data-test=loading]').exists()).toBe(true);
+        expect(w.find('[data-test=empty]').exists()).toBe(false);
+        release(json(GAMES));
+        await flushPromises();
+        expect(w.find('[data-test=loading]').exists()).toBe(false);
+        expect(w.findAll('[data-test=game]')).toHaveLength(1);
+    });
+
+    it('says so when loading the games fails', async () => {
+        const { w } = await view('RPG', json(CATS()), json({}, false, 500));
+        expect(w.find('[data-test=error]').exists()).toBe(true);
+        expect(w.find('[data-test=empty]').exists()).toBe(false);
+    });
+
     it('shows an empty state for an unknown category', async () => {
         const { w } = await view('Nope', json(CATS()));
         expect(w.find('[data-test=empty]').exists()).toBe(true);

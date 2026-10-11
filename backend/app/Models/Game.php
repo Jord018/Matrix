@@ -66,11 +66,15 @@ class Game extends Model
     }
 
     /**
-     * Games listing the given category. Filtered in PHP so it works on any driver (text[] has no portable operator).
-     * ponytail: loads every game; use `? = ANY(categories)` on Postgres if the catalogue grows past a few thousand.
+     * Games listing the given category. Postgres filters in SQL (loading every game from Supabase took ~1s
+     * and made the back-office category page look empty); other drivers (SQLite tests) filter in PHP.
      */
     public static function withCategory(string $name): Collection
     {
+        if (static::query()->getConnection()->getDriverName() === 'pgsql') {
+            return static::whereRaw('? = ANY(coalesce(categories, \'{}\'))', [$name])->get();
+        }
+
         return static::all()->filter(fn (self $g) => is_array($g->categories) && in_array($name, $g->categories, true))->values();
     }
 }

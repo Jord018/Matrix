@@ -5,11 +5,22 @@ import { api } from '../api'
 
 const route = useRoute()
 const games = ref([])
+const loading = ref(true)
+const failed = ref(false)
 
 // Old URLs address categories by name; the API uses ids, so resolve first.
 watch(() => route.params.name, async (name) => {
-  const cat = (await api('/admin/categories')).find((c) => c.name === name)
-  games.value = cat ? await api(`/admin/categories/${cat.id}/games`) : []
+  loading.value = true
+  failed.value = false
+  try {
+    const cat = (await api('/admin/categories')).find((c) => c.name === name)
+    games.value = cat ? await api(`/admin/categories/${cat.id}/games`) : []
+  } catch {
+    games.value = []
+    failed.value = true
+  } finally {
+    loading.value = false
+  }
 }, { immediate: true })
 
 const remove = async (game) => {
@@ -22,7 +33,9 @@ const remove = async (game) => {
 <template>
   <div class="store-container">
     <h1 class="page-title">Category: {{ route.params.name }}</h1>
-    <p v-if="!games.length" data-test="empty">No games in this category.</p>
+    <p v-if="loading" data-test="loading">Loading games...</p>
+    <p v-else-if="failed" role="alert" data-test="error">Could not load the games in this category. Please try again.</p>
+    <p v-else-if="!games.length" data-test="empty">No games in this category.</p>
 
     <table v-else class="admin-table hidden md:table">
       <thead>
