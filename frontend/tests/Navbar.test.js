@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -63,9 +63,10 @@ describe('Navbar.vue', () => {
         expect(wrapper.findAll('form').length).toBe(2)
     })
 
-    it('shows category dropdown on mouseover', async () => {
+    it('shows category dropdown on mouseover and hides on mouseleave when not pinned', async () => {
         const wrapper = mount(Navbar, { global: { plugins: [router] } })
         const categoryBtn = wrapper.find('button.text-white.font-bold')
+        const categoryLi = wrapper.find('li.relative')
         
         // จำลองการเอาเมาส์ไปชี้
         await categoryBtn.trigger('mouseover')
@@ -73,5 +74,53 @@ describe('Navbar.vue', () => {
         const dropdown = wrapper.find('ul.absolute')
         // ตรวจสอบว่าคลาสที่ใช้แสดงผลมีการทำงาน (v-show toggle เป็น true)
         expect(dropdown.attributes('style')).not.toContain('display: none')
+
+        // เอาเมาส์ออกตอนยังไม่ pin ต้องปิด dropdown
+        await categoryLi.trigger('mouseleave')
+        expect(dropdown.attributes('style')).toContain('display: none')
+    })
+
+    it('pins category dropdown on click and closes on outside click', async () => {
+        const wrapper = mount(Navbar, { attachTo: document.body, global: { plugins: [router] } })
+        const categoryBtn = wrapper.find('button.text-white.font-bold')
+        const dropdown = wrapper.find('ul.absolute')
+
+        await categoryBtn.trigger('click')
+        expect(dropdown.attributes('style')).not.toContain('display: none')
+
+        // คลิกนอก dropdown ต้องปิด
+        document.body.click()
+        await flushPromises()
+        expect(dropdown.attributes('style')).toContain('display: none')
+
+        wrapper.unmount()
+    })
+
+    it('loads categories from /categories API or falls back to /games', async () => {
+        const apiModule = await import('../src/api')
+        const spy = vi.spyOn(apiModule, 'api')
+
+        // Case 1: /categories returns data
+        spy.mockImplementationOnce(async () => [
+            { id: 10, name: 'Sci-Fi', isVisible: true },
+            { id: 11, name: 'HiddenCat', isVisible: false }
+        ])
+        const w1 = mount(Navbar, { global: { plugins: [router] } })
+        await flushPromises()
+        expect(w1.text()).toContain('Sci-Fi')
+        expect(w1.text()).not.toContain('HiddenCat')
+
+        // Case 2: /categories fails, falls back to /games
+        spy.mockImplementationOnce(async () => null)
+        spy.mockImplementationOnce(async () => [
+            { id: 1, categories: ['Horror', 'Survival'] },
+            { id: 2, category: 'Puzzle' }
+        ])
+        const w2 = mount(Navbar, { global: { plugins: [router] } })
+        await flushPromises()
+        expect(w2.text()).toContain('Horror')
+        expect(w2.text()).toContain('Puzzle')
+
+        spy.mockRestore()
     })
 })
