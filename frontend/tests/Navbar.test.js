@@ -121,6 +121,21 @@ describe('Navbar.vue', () => {
         expect(w2.text()).toContain('Horror')
         expect(w2.text()).toContain('Puzzle')
 
+        // Case 3: /categories returns wrapped { data: [...] }
+        spy.mockImplementationOnce(async () => ({
+            data: [{ id: 12, name: 'Cyberpunk', isVisible: true }]
+        }))
+        const w3 = mount(Navbar, { global: { plugins: [router] } })
+        await flushPromises()
+        expect(w3.text()).toContain('Cyberpunk')
+
+        // Case 4: No categories found
+        spy.mockImplementationOnce(async () => [])
+        spy.mockImplementationOnce(async () => [])
+        const w4 = mount(Navbar, { global: { plugins: [router] } })
+        await flushPromises()
+        expect(w4.text()).toContain('No Categories Found')
+
         spy.mockRestore()
     })
 })
