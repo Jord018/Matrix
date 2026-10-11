@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
+import Category from '../pages/Category.vue';
 import Login from '../pages/Login.vue';
 import AdminLayout from '../components/AdminLayout.vue';
 import AdminGames from '../pages/AdminGames.vue';
@@ -10,11 +11,25 @@ import AdminCategoryGames from '../pages/AdminCategoryGames.vue';
 import AdminHighlights from '../pages/AdminHighlights.vue';
 import AdminSaleHistory from '../pages/AdminSaleHistory.vue';
 import AdminProfile from '../pages/AdminProfile.vue';
+import ProductDetail from '../pages/ProductDetail.vue';
+import Cart from '../pages/Cart.vue';
+import Purchase from '../pages/Purchase.vue';
+import Success from '../pages/Success.vue';
+import MyKeys from '../pages/MyKeys.vue';
+import Contact from '../pages/Contact.vue';
 import { loadUser, isAdmin } from '../auth';
 
 export const routes = [
     { path: '/', component: Home },
+    { path: '/category/:name', component: Category },
+    { path: '/search', component: Category },
     { path: '/login', component: Login },
+    { path: '/product/:id', component: ProductDetail },
+    { path: '/cart', component: Cart },
+    { path: '/checkout', component: Purchase },
+    { path: '/success', component: Success },
+    { path: '/my-keys', component: MyKeys },
+    { path: '/contact', component: Contact },
     {
         path: '/admin',
         component: AdminLayout,

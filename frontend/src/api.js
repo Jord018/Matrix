@@ -1,6 +1,6 @@
 // Thin fetch wrapper for the Laravel API (same-origin via Vite proxy).
 const xsrf = () => {
-    const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+    const m = /(?:^|; )XSRF-TOKEN=([^;]*)/.exec(document.cookie);
     return m ? decodeURIComponent(m[1]) : null;
 };
 

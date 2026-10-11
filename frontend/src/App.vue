@@ -3,7 +3,7 @@ import Navbar from './components/Navbar.vue'
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-light font-sans">
+  <div :class="[$route.meta.admin ? 'bg-bg-light' : 'store-background', 'min-h-screen font-sans']">
     <Navbar v-if="!$route.meta.admin" />
     <main>
       <RouterView />
