@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Game;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -64,6 +65,7 @@ class CategoryController extends Controller
     {
         $data = $request->validate(['isVisible' => ['required', 'boolean']]);
         $category->update($data);
+        Cache::flush();
 
         return response()->json($category);
     }

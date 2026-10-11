@@ -209,4 +209,37 @@ class CatalogApiTest extends TestCase
         $response->assertStatus(404)
             ->assertJson(['message' => 'Game not found']);
     }
+
+    public function test_get_games_excludes_games_in_hidden_categories(): void
+    {
+        CategorySetting::create(['name' => 'VisibleCat', 'isVisible' => true]);
+        CategorySetting::create(['name' => 'HiddenCat', 'isVisible' => false]);
+
+        Game::create([
+            'name' => 'Visible Game',
+            'price' => 19.99,
+            'stock' => 5,
+            'categories' => ['VisibleCat'],
+        ]);
+
+        Game::create([
+            'name' => 'Hidden Game',
+            'price' => 29.99,
+            'stock' => 5,
+            'categories' => ['HiddenCat'],
+        ]);
+
+        $res = $this->getJson('/api/games');
+        $res->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['name' => 'Visible Game'])
+            ->assertJsonMissing(['name' => 'Hidden Game']);
+
+        // Search also excludes hidden games
+        $searchRes = $this->getJson('/api/search?q=Game');
+        $searchRes->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['name' => 'Visible Game'])
+            ->assertJsonMissing(['name' => 'Hidden Game']);
+    }
 }

@@ -58,10 +58,24 @@ class Game extends Model
     {
         $hidden = CategorySetting::where('isVisible', false)->pluck('name')->all();
 
-        if ($hidden) {
+        if (empty($hidden)) {
+            return;
+        }
+
+        if ($query->getConnection()->getDriverName() === 'pgsql') {
             $query->whereRaw('NOT (coalesce(categories, \'{}\') && ?::text[])', [
                 (new PgTextArray)->set($this, 'categories', $hidden, []),
             ]);
+        } else {
+            foreach ($hidden as $cat) {
+                $query->where(function (Builder $q) use ($cat) {
+                    $q->whereNull('categories')
+                        ->orWhere(function (Builder $sub) use ($cat) {
+                            $sub->where('categories', 'not like', '%"'.$cat.'"%')
+                                ->where('categories', 'not like', '%'.$cat.'%');
+                        });
+                });
+            }
         }
     }
 
