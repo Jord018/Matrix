@@ -95,7 +95,6 @@ const safeStorage = {
 
 const apiCache = new Map();
 const inFlightRequests = new Map();
-const DEFAULT_CACHE_TTL = 30000; // 30 seconds
 const DEFAULT_STORAGE_TTL = 300000; // 5 minutes in localStorage for instant reload
 const CACHE_STORAGE_PREFIX = 'api_cache:';
 const CATALOG_ROUTES = /^\/?(categories|highlights|games|search)($|[\/?])/i;
@@ -165,16 +164,11 @@ export async function api(path, options = {}) {
 
     const url = formatEndpoint(path, baseUrl);
     const isCacheable = isCacheableRequest(path, method, options);
-    const ttl = options.cacheTtl ?? DEFAULT_CACHE_TTL;
 
-    if (isCacheable && !options.forceRefresh) {
-        const cached = getCachedData(path, ttl);
-        if (cached !== null) {
-            return cached;
-        }
-        if (inFlightRequests.has(url)) {
-            return inFlightRequests.get(url);
-        }
+    // Always ask the server: its catalog cache is flushed on every back-office change, so a category hidden
+    // from another tab disappears on the next request. Identical concurrent GETs still share one fetch.
+    if (isCacheable && !options.forceRefresh && inFlightRequests.has(url)) {
+        return inFlightRequests.get(url);
     }
 
     const executeFetch = async () => {
