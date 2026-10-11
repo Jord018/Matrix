@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
 use App\Models\CategorySetting;
 use App\Models\Game;
 use App\Models\Highlight;
@@ -29,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
 
         Game::saved($flushCatalogCache);
         Game::deleted($flushCatalogCache);
+        Category::saved($flushCatalogCache);
+        Category::deleted($flushCatalogCache);
         CategorySetting::saved($flushCatalogCache);
         CategorySetting::deleted($flushCatalogCache);
         Highlight::saved($flushCatalogCache);

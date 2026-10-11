@@ -63,4 +63,33 @@ class AdminCategoryVisibilityTest extends TestCase
         $this->getJson("/api/admin/categories/{$this->rpg->id}/games")->assertOk()
             ->assertJsonCount(2)->assertJsonPath('0.name', 'Zed')->assertJsonPath('1.name', 'Alpha');
     }
+
+    public function test_toggling_visibility_hides_category_and_games_from_storefront(): void
+    {
+        Game::create(['name' => 'Dragon Quest', 'categories' => ['RPG']]);
+        Game::create(['name' => 'Street Fighter', 'categories' => ['Fighting']]);
+        Category::create(['name' => 'Fighting']);
+
+        // Before toggle: RPG category and RPG game are visible in store
+        $this->getJson('/api/categories')->assertOk()->assertJsonFragment(['name' => 'RPG']);
+        $this->getJson('/api/games')->assertOk()->assertJsonFragment(['name' => 'Dragon Quest']);
+
+        // Admin toggles RPG visibility to false
+        $this->actAs();
+        $this->patchJson("/api/admin/categories/{$this->rpg->id}/visibility", ['isVisible' => false])->assertOk();
+
+        // After toggle: RPG category and Dragon Quest game are HIDDEN from storefront
+        $this->getJson('/api/categories')->assertOk()
+            ->assertJsonMissing(['name' => 'RPG'])
+            ->assertJsonFragment(['name' => 'Fighting']);
+
+        $this->getJson('/api/games')->assertOk()
+            ->assertJsonMissing(['name' => 'Dragon Quest'])
+            ->assertJsonFragment(['name' => 'Street Fighter']);
+
+        // Toggle back to true
+        $this->patchJson("/api/admin/categories/{$this->rpg->id}/visibility", ['isVisible' => true])->assertOk();
+        $this->getJson('/api/categories')->assertOk()->assertJsonFragment(['name' => 'RPG']);
+        $this->getJson('/api/games')->assertOk()->assertJsonFragment(['name' => 'Dragon Quest']);
+    }
 }

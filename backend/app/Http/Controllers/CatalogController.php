@@ -26,7 +26,7 @@ class CatalogController extends Controller
         $categories = Cache::remember('catalog.categories', self::CACHE_TTL, function () {
             return CategorySetting::where('isVisible', true)
                 ->orderBy('name')
-                ->get(['id', 'name'])
+                ->get(['id', 'name', 'isVisible'])
                 ->toArray();
         });
 
@@ -55,7 +55,7 @@ class CatalogController extends Controller
         $cacheKey = 'catalog.games.'.hash('sha256', $request->fullUrl());
 
         $data = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
-            $query = Game::query();
+            $query = Game::query()->visible();
 
             if ($search = $request->query('q') ?? $request->query('search')) {
                 // '!' as the LIKE escape: pgsql PDO reads '\' as an escaped quote and loses the next "?".
