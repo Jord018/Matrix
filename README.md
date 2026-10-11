@@ -17,7 +17,7 @@ cd backend
 composer install
 cp .env.example .env   # then set DB_PASSWORD
 php artisan key:generate
-php artisan serve
+composer serve         # PORT=8123 composer serve  (PowerShell: $env:PORT=8123; composer serve)
 
 # frontend (http://localhost:5173, proxies /api to the backend)
 cd frontend
@@ -26,6 +26,10 @@ npm run dev            # BACKEND_URL=http://127.0.0.1:8123 npm run dev  if port 
 ```
 
 > The backend uses the existing Supabase tables. Never run `php artisan migrate` against it.
+
+> Use `composer serve` rather than `php artisan serve`: it turns on opcache (~0.01s per request instead of ~0.13s)
+> and avoids artisan serve's random ~0.35s stalls on Windows. Open shops poll `/api/catalog-version` every 0.5s
+> to pick up back-office changes, so a slow dev server makes those updates lag.
 
 ## Tests
 

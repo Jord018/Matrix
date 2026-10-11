@@ -28,6 +28,22 @@ class AdminCategoryVisibilityTest extends TestCase
         $this->getJson("/api/admin/categories/{$this->rpg->id}/games")->assertStatus(403);
     }
 
+    /** Shops in another browser (another account) poll this to notice back-office changes. */
+    public function test_catalog_version_changes_after_every_back_office_change(): void
+    {
+        $v1 = $this->getJson('/api/catalog-version')->assertOk()->json('version');
+        $this->assertNotEmpty($v1);
+        $this->assertSame($v1, $this->getJson('/api/catalog-version')->json('version'));
+
+        $this->actAs();
+        $this->patchJson("/api/admin/categories/{$this->rpg->id}/visibility", ['isVisible' => false])->assertOk();
+        $v2 = $this->getJson('/api/catalog-version')->json('version');
+        $this->assertNotSame($v1, $v2);
+
+        Game::create(['id' => 'g1', 'name' => 'Zelda', 'price' => 10, 'stock' => 1, 'categories' => ['RPG']]);
+        $this->assertNotSame($v2, $this->getJson('/api/catalog-version')->json('version'));
+    }
+
     public function test_toggles_visibility_both_ways(): void
     {
         $this->actAs();

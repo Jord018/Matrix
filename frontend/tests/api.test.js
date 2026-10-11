@@ -185,6 +185,48 @@ describe('api() and helpers', () => {
         expect(cb).toHaveBeenCalledTimes(1);
     });
 
+    it('notices changes made from another browser or account by polling the catalog version', async () => {
+        vi.useFakeTimers();
+        const versions = ['v1', 'v1', 'v2', 'v2'];
+        const fetch = vi.fn((url) => Promise.resolve({
+            ok: true, status: 200,
+            json: () => Promise.resolve(String(url).endsWith('/catalog-version') ? { version: versions.shift() ?? 'v2' } : []),
+        }));
+        vi.stubGlobal('fetch', fetch);
+        const cb = vi.fn();
+        const off = onCatalogChange(cb);
+
+        await vi.advanceTimersByTimeAsync(0);    // first check only records v1
+        await vi.advanceTimersByTimeAsync(500); // v1 again: nothing changed
+        expect(cb).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(500); // v2: the admin saved something
+        expect(cb).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(500);
+        expect(cb).toHaveBeenCalledTimes(1);
+
+        off();
+        const calls = fetch.mock.calls.length;
+        await vi.advanceTimersByTimeAsync(5000);
+        expect(fetch.mock.calls.length).toBe(calls); // stops polling once nothing listens
+        vi.useRealTimers();
+    });
+
+    it('turns a burst of changes into one extra refresh instead of one per change', async () => {
+        vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {}))); // version check never answers
+        let finish;
+        const cb = vi.fn(() => new Promise((r) => { finish = r; }));
+        const off = onCatalogChange(cb);
+        for (let i = 0; i < 5; i++) window.dispatchEvent(new StorageEvent('storage', { key: 'catalog:changed' }));
+        expect(cb).toHaveBeenCalledTimes(1);
+        finish();
+        await new Promise((r) => setTimeout(r, 0));
+        expect(cb).toHaveBeenCalledTimes(2); // one trailing refresh picks up everything from the burst
+        finish();
+        await new Promise((r) => setTimeout(r, 0));
+        expect(cb).toHaveBeenCalledTimes(2);
+        off();
+    });
+
     it('trims trailing slashes safely without ReDoS', () => {
         expect(trimTrailingSlashes('http://localhost:8000/api///')).toBe('http://localhost:8000/api');
         expect(trimTrailingSlashes('/api/')).toBe('/api');
