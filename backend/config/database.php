@@ -95,8 +95,15 @@ return [
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'search_path' => env('DB_SCHEMA', 'public'),
+            // Supabase is ~60ms away, so every round trip counts: no "set search_path" per connect unless
+            // DB_SCHEMA is set (public is already the default), one round trip per query instead of
+            // prepare+execute, and the connection is reused across requests instead of a new TLS handshake.
+            'search_path' => env('DB_SCHEMA'),
             'sslmode' => env('DB_SSLMODE', 'require'),
+            'options' => extension_loaded('pdo_pgsql') ? [
+                PDO::ATTR_EMULATE_PREPARES => true,
+                PDO::ATTR_PERSISTENT => true,
+            ] : [],
         ],
 
         'sqlsrv' => [

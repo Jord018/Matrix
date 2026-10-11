@@ -116,20 +116,16 @@ describe('api() and helpers', () => {
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 
-    it('serves subsequent GET requests from memory cache within TTL', async () => {
-        const fetch = vi.fn().mockResolvedValue({
-            ok: true,
-            status: 200,
-            json: () => Promise.resolve({ cached: true }),
-        });
+    it('asks the server again for each later GET so admin changes show up right away', async () => {
+        const fetch = vi.fn()
+            .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve([{ name: 'Action' }, { name: 'Horror' }]) })
+            .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve([{ name: 'Action' }]) });
         vi.stubGlobal('fetch', fetch);
 
-        const res1 = await api('/categories');
-        const res2 = await api('/categories');
-
-        expect(res1).toEqual({ cached: true });
-        expect(res2).toEqual({ cached: true });
-        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(await api('/categories')).toHaveLength(2);
+        // Horror was hidden in the back office (possibly from another tab, which can't clear this tab's cache).
+        expect(await api('/categories')).toEqual([{ name: 'Action' }]);
+        expect(fetch).toHaveBeenCalledTimes(2);
     });
 
     it('bypasses memory cache when options.cache is false', async () => {
