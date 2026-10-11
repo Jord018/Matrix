@@ -6,11 +6,25 @@ use App\Http\Requests\CheckoutRequest;
 use App\Models\Game;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
+    /**
+     * GET /api/orders
+     * The signed-in user's orders, newest first (profile page "My Digital Keys").
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $orders = Order::where('userId', (string) $request->user()->id)
+            ->orderByDesc('purchaseDate')
+            ->get();
+
+        return response()->json($orders);
+    }
+
     /**
      * POST /api/orders
      * Handles checkout, stock decrement, activation key generation, and order persistence.

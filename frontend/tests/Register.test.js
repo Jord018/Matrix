@@ -3,7 +3,6 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 import Register from '../src/pages/Register.vue'
 import * as apiModule from '../src/api'
-import { auth } from '../src/auth'
 
 const makeRouter = () => createRouter({
     history: createWebHistory(),
@@ -34,14 +33,13 @@ describe('Register.vue', () => {
         expect(wrapper.find('[role=alert]').text()).toContain('รหัสผ่านไม่ตรงกัน')
     })
 
-    it('posts the form, signs the user in and goes to the store', async () => {
+    it('posts the form and sends the user to log in', async () => {
         const router = makeRouter()
         const spy = vi.spyOn(apiModule, 'api').mockResolvedValue({ Username: 'jerry' })
         const wrapper = mount(Register, { global: { plugins: [router] } })
         await fill(wrapper, 'secret')
         expect(spy).toHaveBeenCalledWith('/register', expect.objectContaining({ method: 'POST' }))
-        expect(auth.user).toEqual({ Username: 'jerry' })
-        expect(router.currentRoute.value.path).toBe('/')
+        expect(router.currentRoute.value.path).toBe('/login')
     })
 
     it('shows the taken message on 409 and a generic one otherwise', async () => {

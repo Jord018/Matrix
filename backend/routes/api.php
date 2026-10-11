@@ -18,6 +18,7 @@ Route::get('/games', [CatalogController::class, 'games']);
 Route::get('/games/{id}', [CatalogController::class, 'game']);
 Route::get('/search', [CatalogController::class, 'games']);
 
+Route::get('/orders', [OrderController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/orders', [OrderController::class, 'store'])->middleware('auth:sanctum');
 Route::post('/checkout', [OrderController::class, 'store'])->middleware('auth:sanctum');
 

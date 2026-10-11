@@ -94,16 +94,15 @@ class AuthTest extends TestCase
         $this->spa()->postJson('/api/logout')->assertStatus(401);
     }
 
-    public function test_register_creates_customer_who_can_log_in(): void
+    public function test_register_creates_customer_who_must_then_log_in(): void
     {
         $this->spa()->postJson('/api/register', [
             'username' => 'tom', 'email' => 'tom@example.com', 'password' => 'pw12345', 'confirmPassword' => 'pw12345',
         ])->assertCreated()->assertJsonPath('Role', 'customer')->assertJsonMissingPath('PasswordHash');
 
-        // Registering signs the new account in straight away.
-        $this->spa()->getJson('/api/user')->assertSuccessful()->assertJsonPath('Username', 'tom');
+        // Like the old store: registering does not sign in, the user logs in next.
+        $this->spa()->getJson('/api/user')->assertUnauthorized();
 
-        $this->spa()->postJson('/api/logout')->assertOk();
         $this->spa()->postJson('/api/login', ['username' => 'tom', 'password' => 'pw12345'])->assertOk();
     }
 
