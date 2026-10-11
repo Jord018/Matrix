@@ -38,4 +38,11 @@ class AdminOrderIndexTest extends TestCase
             ->assertJsonCount(2, '0.items.0.keys')
             ->assertJsonPath('1.username', 'old');
     }
+
+    public function test_returns_empty_list_when_no_orders(): void
+    {
+        $this->actAs();
+
+        $this->getJson('/api/admin/orders')->assertOk()->assertExactJson([]);
+    }
 }
