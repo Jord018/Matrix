@@ -9,6 +9,7 @@ import Cart from '../pages/Cart.vue';
 import Purchase from '../pages/Purchase.vue';
 import Success from '../pages/Success.vue';
 import MyKeys from '../pages/MyKeys.vue';
+import Contact from '../pages/Contact.vue';
 import { loadUser, isAdmin } from '../auth';
 
 export const routes = [
@@ -21,6 +22,7 @@ export const routes = [
     { path: '/checkout', component: Purchase },
     { path: '/success', component: Success },
     { path: '/my-keys', component: MyKeys },
+    { path: '/contact', component: Contact },
     {
         path: '/admin',
         component: AdminLayout,

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import Category from '../src/pages/Category.vue'
 import * as apiModule from '../src/api'
@@ -21,6 +22,7 @@ const router = createRouter({
 
 describe('Category.vue', () => {
   beforeEach(async () => {
+    setActivePinia(createPinia())
     vi.clearAllMocks()
     window.scrollTo = vi.fn()
   })
