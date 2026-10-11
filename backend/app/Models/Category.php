@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Concerns\AcceptsAnyStringId;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasUuids;
+    use AcceptsAnyStringId;
 
     protected $table = 'category_settings';
 

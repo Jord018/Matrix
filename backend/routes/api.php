@@ -14,4 +14,5 @@ Route::get('/user', fn (Request $request) => $request->user())->middleware('auth
 
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/games', [GameController::class, 'index']);
+    Route::get('/games/{game}', [GameController::class, 'show']);
 });
