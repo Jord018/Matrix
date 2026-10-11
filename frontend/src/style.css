@@ -10,3 +10,10 @@
     --color-bg-light: #f4f6f9;
     --color-twilight: #0a0314;
 }
+
+/* Back-office pages fade in (old store used anime.js) */
+@keyframes admin-fade-in {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: none; }
+}
+.admin-fade-in { animation: admin-fade-in 0.8s ease-out; }
