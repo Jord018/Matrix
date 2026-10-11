@@ -7,7 +7,8 @@ import * as apiModule from '../src/api'
 
 // Mock API
 vi.mock('../src/api', () => ({
-  api: vi.fn()
+  api: vi.fn(),
+  onCatalogChange: vi.fn(() => () => {})
 }))
 
 // สร้าง Router เสมือน
@@ -49,6 +50,24 @@ describe('Category.vue', () => {
     expect(wrapper.text()).toContain('1 products found')
     expect(wrapper.text()).toContain('RPG Game') // ชื่อเกมใน GameCard
     expect(apiModule.api).toHaveBeenCalledWith('/games?category=RPG')
+  })
+
+  it('refreshes in place when the back office changes something in another tab', async () => {
+    apiModule.api.mockResolvedValue([
+      { id: '1', name: 'Pinball A', price: 100, coverImage: '/a.jpg' },
+      { id: '2', name: 'Pinball B', price: 100, coverImage: '/b.jpg' }
+    ])
+    await router.push('/category/Pinball')
+    const wrapper = mount(Category, { global: { plugins: [router] } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('2 products found')
+
+    // Pinball hidden in the back office -> the other tab fires the change callback
+    apiModule.api.mockResolvedValue([])
+    apiModule.onCatalogChange.mock.calls.at(-1)[0]()
+    await flushPromises()
+    expect(wrapper.text()).toContain('0 products found')
+    expect(apiModule.api).toHaveBeenLastCalledWith('/games?category=Pinball')
   })
 
   it('renders search results based on query', async () => {

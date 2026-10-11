@@ -42,7 +42,7 @@ const modules = [EffectCoverflow, Autoplay, Navigation];
     >
       <swiper-slide 
         v-for="item in highlights" 
-        :key="item._id || item.gameId"
+        :key="item.id || item._id || item.gameId"
       >
         <!-- Background เบลอๆ ด้านหลัง -->
         <div 

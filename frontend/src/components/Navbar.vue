@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
-import { api } from "../api";
+import { api, onCatalogChange } from "../api";
 import { auth, loadUser } from "../auth";
 
 const router = useRouter();
@@ -69,13 +69,16 @@ const fetchCategories = async () => {
   }
 };
 
+let stopWatchingChanges;
 onMounted(() => {
   fetchCategories();
+  stopWatchingChanges = onCatalogChange(fetchCategories);
   loadUser();
   window.addEventListener("click", closeCategory);
 });
 
 onUnmounted(() => {
+  stopWatchingChanges?.();
   window.removeEventListener("click", closeCategory);
 });
 
