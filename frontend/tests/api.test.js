@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { api, formatEndpoint, getBaseUrl } from '../src/api';
+import { api, clearApiCache, formatEndpoint, getBaseUrl } from '../src/api';
 
 afterEach(() => {
     vi.unstubAllGlobals();
     delete window.__API_BASE_URL__;
     document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    clearApiCache();
 });
 
 describe('api() and helpers', () => {
@@ -96,5 +97,72 @@ describe('api() and helpers', () => {
         expect(err.message).toBe('API 500: /server-error');
         expect(err.status).toBe(500);
         expect(err.data).toBeNull();
+    });
+
+    it('deduplicates concurrent in-flight GET requests', async () => {
+        let resolver;
+        const fetch = vi.fn().mockImplementation(() => new Promise((resolve) => {
+            resolver = () => resolve({ ok: true, status: 200, json: () => Promise.resolve([{ id: 'g1' }]) });
+        }));
+        vi.stubGlobal('fetch', fetch);
+
+        const p1 = api('/games');
+        const p2 = api('/games');
+        resolver();
+
+        const [r1, r2] = await Promise.all([p1, p2]);
+        expect(r1).toEqual([{ id: 'g1' }]);
+        expect(r2).toEqual([{ id: 'g1' }]);
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('serves subsequent GET requests from memory cache within TTL', async () => {
+        const fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ cached: true }),
+        });
+        vi.stubGlobal('fetch', fetch);
+
+        const res1 = await api('/categories');
+        const res2 = await api('/categories');
+
+        expect(res1).toEqual({ cached: true });
+        expect(res2).toEqual({ cached: true });
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('bypasses memory cache when options.cache is false', async () => {
+        const fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ data: 1 }),
+        });
+        vi.stubGlobal('fetch', fetch);
+
+        await api('/fresh', { cache: false });
+        await api('/fresh', { cache: false });
+
+        expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('invalidates cache on mutation requests like POST', async () => {
+        const fetch = vi.fn()
+            .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ count: 1 }) }))
+            .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ success: true }) }))
+            .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ count: 2 }) }));
+        vi.stubGlobal('fetch', fetch);
+        document.cookie = 'XSRF-TOKEN=valid-token; path=/';
+
+        const before = await api('/games');
+        expect(before).toEqual({ count: 1 });
+
+        // Mutation clears cache
+        await api('/games', { method: 'POST', body: '{}' });
+
+        // Should fetch fresh
+        const after = await api('/games');
+        expect(after).toEqual({ count: 2 });
+        expect(fetch).toHaveBeenCalledTimes(3);
     });
 });
