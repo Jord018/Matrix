@@ -20,8 +20,6 @@ class CheckoutRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.gameId' => ['required', 'string', 'exists:games,id'],
             'items.*.amount' => ['required', 'integer', 'min:1'],
-            'userId' => ['nullable', 'string'],
-            'username' => ['nullable', 'string'],
         ];
     }
 

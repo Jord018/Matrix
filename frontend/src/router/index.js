@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
 import Category from '../pages/Category.vue';
 import Login from '../pages/Login.vue';
+import Register from '../pages/Register.vue';
 import AdminLayout from '../components/AdminLayout.vue';
 import AdminGames from '../pages/AdminGames.vue';
 import AdminAddGame from '../pages/AdminAddGame.vue';
@@ -17,18 +18,19 @@ import Purchase from '../pages/Purchase.vue';
 import Success from '../pages/Success.vue';
 import MyKeys from '../pages/MyKeys.vue';
 import Contact from '../pages/Contact.vue';
-import { loadUser, isAdmin } from '../auth';
+import { auth, loadUser, isAdmin } from '../auth';
 
 export const routes = [
     { path: '/', component: Home },
     { path: '/category/:name', component: Category },
     { path: '/search', component: Category },
-    { path: '/login', component: Login },
+    { path: '/login', component: Login, meta: { bare: true } },
+    { path: '/register', component: Register, meta: { bare: true } },
     { path: '/product/:id', component: ProductDetail },
-    { path: '/cart', component: Cart },
-    { path: '/checkout', component: Purchase },
-    { path: '/success', component: Success },
-    { path: '/my-keys', component: MyKeys },
+    { path: '/cart', component: Cart, meta: { auth: true } },
+    { path: '/checkout', component: Purchase, meta: { auth: true } },
+    { path: '/success', component: Success, meta: { auth: true } },
+    { path: '/my-keys', component: MyKeys, meta: { auth: true } },
     { path: '/contact', component: Contact },
     {
         path: '/admin',
@@ -48,9 +50,10 @@ export const routes = [
 ];
 
 export const adminGuard = async (to) => {
-    if (!to.meta.admin) return true;
+    if (!to.meta.admin && !to.meta.auth) return true;
     await loadUser();
-    return isAdmin() ? true : { path: '/login', query: { redirect: to.fullPath } };
+    const allowed = to.meta.admin ? isAdmin() : !!auth.user;
+    return allowed ? true : { path: '/login', query: { redirect: to.fullPath } };
 };
 
 const router = createRouter({ history: createWebHistory(), routes });

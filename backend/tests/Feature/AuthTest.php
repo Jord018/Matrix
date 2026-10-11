@@ -81,4 +81,27 @@ class AuthTest extends TestCase
     {
         $this->spa()->postJson('/api/logout')->assertStatus(401);
     }
+
+    public function test_register_creates_customer_who_can_log_in(): void
+    {
+        $this->spa()->postJson('/api/register', [
+            'username' => 'tom', 'email' => 'tom@example.com', 'password' => 'pw12345', 'confirmPassword' => 'pw12345',
+        ])->assertCreated()->assertJsonPath('Role', 'customer')->assertJsonMissingPath('PasswordHash');
+
+        $this->spa()->postJson('/api/login', ['username' => 'tom', 'password' => 'pw12345'])->assertOk();
+    }
+
+    public function test_register_rejects_taken_username_or_email(): void
+    {
+        $base = ['password' => 'pw12345', 'confirmPassword' => 'pw12345'];
+        $this->spa()->postJson('/api/register', $base + ['username' => 'jerry', 'email' => 'new@example.com'])->assertStatus(409);
+        $this->spa()->postJson('/api/register', $base + ['username' => 'new', 'email' => 'jerry@example.com'])->assertStatus(409);
+    }
+
+    public function test_register_rejects_mismatched_passwords(): void
+    {
+        $this->spa()->postJson('/api/register', [
+            'username' => 'tom', 'email' => 'tom@example.com', 'password' => 'a', 'confirmPassword' => 'b',
+        ])->assertStatus(422)->assertJsonValidationErrors(['confirmPassword']);
+    }
 }

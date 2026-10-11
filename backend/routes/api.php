@@ -18,10 +18,11 @@ Route::get('/games', [CatalogController::class, 'games']);
 Route::get('/games/{id}', [CatalogController::class, 'game']);
 Route::get('/search', [CatalogController::class, 'games']);
 
-Route::post('/orders', [OrderController::class, 'store']);
-Route::post('/checkout', [OrderController::class, 'store']);
+Route::post('/orders', [OrderController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/checkout', [OrderController::class, 'store'])->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/user', fn (Request $request) => $request->user())->middleware('auth:sanctum');

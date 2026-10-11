@@ -83,8 +83,7 @@ describe('Purchase.vue', () => {
         expect(apiSpy).toHaveBeenCalledWith('/orders', {
             method: 'POST',
             body: JSON.stringify({
-                items: [{ gameId: 'g1', amount: 1 }],
-                username: 'Guest'
+                items: [{ gameId: 'g1', amount: 1 }]
             })
         })
 

@@ -11,6 +11,14 @@ class OrderApiTest extends TestCase
 {
     use BackOfficeSchema;
 
+    private \App\Models\Account $customer;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->customer = $this->actAs('customer');
+    }
+
     public function test_successful_order_deducts_stock_generates_keys_and_persists_order(): void
     {
         $game1 = Game::create([
@@ -32,15 +40,15 @@ class OrderApiTest extends TestCase
                 ['gameId' => $game1->id, 'amount' => 2],
                 ['gameId' => $game2->id, 'amount' => 1],
             ],
-            'userId' => 'user-101',
-            'username' => 'gamer_one',
+            'userId' => 'spoofed-id',
+            'username' => 'spoofed-name',
         ];
 
         $response = $this->postJson('/api/orders', $payload);
 
         $response->assertCreated()
-            ->assertJsonPath('userId', 'user-101')
-            ->assertJsonPath('username', 'gamer_one')
+            ->assertJsonPath('userId', $this->customer->id)
+            ->assertJsonPath('username', 'customer')
             ->assertJsonPath('status', 'completed')
             ->assertJsonCount(2, 'items');
 
@@ -84,7 +92,7 @@ class OrderApiTest extends TestCase
         $this->assertSame(4, $game->fresh()->stock);
     }
 
-    public function test_guest_checkout_defaults_user_and_username_to_guest(): void
+    public function test_guests_cannot_place_orders(): void
     {
         $game = Game::create([
             'name' => 'Indie Hit',
@@ -92,15 +100,14 @@ class OrderApiTest extends TestCase
             'stock' => 5,
         ]);
 
-        $response = $this->postJson('/api/orders', [
-            'items' => [
-                ['gameId' => $game->id, 'amount' => 1],
-            ],
-        ]);
+        $this->app['auth']->forgetGuards();
+        $this->app['auth']->guard('sanctum')->forgetUser();
+        $payload = ['items' => [['gameId' => $game->id, 'amount' => 1]]];
 
-        $response->assertCreated()
-            ->assertJsonPath('userId', 'guest')
-            ->assertJsonPath('username', 'guest');
+        $this->postJson('/api/orders', $payload)->assertUnauthorized();
+        $this->postJson('/api/checkout', $payload)->assertUnauthorized();
+        $this->assertSame(5, $game->fresh()->stock);
+        $this->assertSame(0, Order::count());
     }
 
     public function test_out_of_stock_fails_with_422_and_rolls_back_stock(): void
