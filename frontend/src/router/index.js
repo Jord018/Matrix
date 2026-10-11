@@ -8,6 +8,7 @@ import AdminAddGame from '../pages/AdminAddGame.vue';
 import AdminEditGame from '../pages/AdminEditGame.vue';
 import AdminCategories from '../pages/AdminCategories.vue';
 import AdminCategoryGames from '../pages/AdminCategoryGames.vue';
+import AdminHighlights from '../pages/AdminHighlights.vue';
 import ProductDetail from '../pages/ProductDetail.vue';
 import Cart from '../pages/Cart.vue';
 import Purchase from '../pages/Purchase.vue';
@@ -37,6 +38,7 @@ export const routes = [
             { path: 'edit-game/:id', component: AdminEditGame },
             { path: 'back-category', component: AdminCategories },
             { path: 'back-category/:name', component: AdminCategoryGames },
+            { path: 'back-highlight', component: AdminHighlights },
         ],
     },
 ];
