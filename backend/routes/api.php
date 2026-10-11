@@ -8,9 +8,15 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 Route::get('/health', fn () => ['status' => 'ok']);
+
+// Changes after every back-office change (the catalog cache is flushed on each save, which drops this key).
+// Shops poll it, so a shop in another browser or account picks up hidden categories and new highlights.
+Route::get('/catalog-version', fn () => ['version' => Cache::rememberForever('catalog.version', fn () => (string) Str::uuid())]);
 
 Route::get('/categories', [CatalogController::class, 'categories']);
 Route::get('/highlights', [CatalogController::class, 'highlights']);

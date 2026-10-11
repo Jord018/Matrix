@@ -114,16 +114,74 @@ export const clearApiCache = () => {
     safeStorage.clearSnapshotKeys(CACHE_STORAGE_PREFIX);
 };
 
-// A save in one tab (e.g. the back office) tells every other open tab (e.g. the shop) to refetch.
-// Browsers fire "storage" events only in the *other* tabs of the same origin.
+// Back-office saves must reach open shops. Two signals:
+// - same browser: a save writes CATALOG_CHANGED_KEY, and browsers fire "storage" events in the *other* tabs;
+// - another browser or account (admin and customer can't share one session): poll /catalog-version,
+//   which the server changes on every save.
 const CATALOG_CHANGED_KEY = 'catalog:changed';
+const VERSION_POLL_MS = 500;
+const changeListeners = new Set();
+let pollTimer = null;
+let lastVersion = null;
+
+const notifyCatalogChange = () => {
+    inFlightRequests.clear(); // a refresh must not join a request that started before the change
+    changeListeners.forEach((run) => void run());
+};
+
+const onStorage = (e) => {
+    if (e.key === CATALOG_CHANGED_KEY) notifyCatalogChange();
+};
+
+const checkCatalogVersion = async () => {
+    if (document.visibilityState === 'hidden') return;
+    try {
+        const { version } = await api('/catalog-version');
+        if (lastVersion !== null && version !== lastVersion) notifyCatalogChange();
+        lastVersion = version;
+    } catch {
+        // Server restarting or offline: the next tick tries again.
+    }
+};
 
 export const onCatalogChange = (cb) => {
-    const handler = (e) => {
-        if (e.key === CATALOG_CHANGED_KEY) cb();
+    // One refresh at a time; changes that land during it trigger exactly one more,
+    // so a burst of clicks in the back office costs two refreshes, not one per click.
+    let running = false;
+    let again = false;
+    const run = async () => {
+        if (running) {
+            again = true;
+            return;
+        }
+        running = true;
+        do {
+            again = false;
+            try {
+                await cb();
+            } catch {
+                // The page shows its own error state.
+            }
+        } while (again);
+        running = false;
     };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
+
+    changeListeners.add(run);
+    if (changeListeners.size === 1) {
+        window.addEventListener('storage', onStorage);
+        document.addEventListener('visibilitychange', checkCatalogVersion);
+        pollTimer = setInterval(checkCatalogVersion, VERSION_POLL_MS);
+        void checkCatalogVersion();
+    }
+    return () => {
+        changeListeners.delete(run);
+        if (changeListeners.size === 0) {
+            window.removeEventListener('storage', onStorage);
+            document.removeEventListener('visibilitychange', checkCatalogVersion);
+            clearInterval(pollTimer);
+            lastVersion = null;
+        }
+    };
 };
 
 export const getCachedData = (path, maxAge = DEFAULT_STORAGE_TTL) => {
