@@ -1,12 +1,14 @@
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import { requireLogin } from "../auth";
 import { api } from "../api";
 import GameCard from "../components/GameCard.vue";
 import Pagination from "../components/Pagination.vue";
 import { useCartStore } from "../stores/cart";
 
 const route = useRoute();
+const router = useRouter();
 const games = ref([]);
 const loading = ref(true);
 const cartStore = useCartStore();
@@ -81,7 +83,8 @@ const handlePageChange = (page) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-const handleAddToCart = (payload) => {
+const handleAddToCart = async (payload) => {
+  if (!(await requireLogin(router, route.fullPath))) return;
   const gameToAdd = games.value.find((g) => (g.id || g._id) === payload.gameId);
   if (gameToAdd) {
     cartStore.addToCart(gameToAdd, payload.amount);

@@ -5,8 +5,11 @@ import HighlightCarousel from "../components/HighlightCarousel.vue";
 import GameCard from "../components/GameCard.vue";
 import Pagination from "../components/Pagination.vue";
 import { useCartStore } from "../stores/cart";
+import { useRouter } from "vue-router";
+import { requireLogin } from "../auth";
 
 const cartStore = useCartStore();
+const router = useRouter();
 
 const highlights = ref([]);
 const allGames = ref([]);
@@ -65,7 +68,8 @@ const handlePageChange = (page) => {
   }
 };
 
-const handleAddToCart = (payload) => {
+const handleAddToCart = async (payload) => {
+  if (!(await requireLogin(router, "/"))) return;
   const gameToAdd = allGames.value.find((g) => (g.id || g._id) === payload.gameId);
   if (gameToAdd) {
     cartStore.addToCart(gameToAdd, payload.amount);

@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { api } from "../api";
 import { useCartStore } from "../stores/cart";
+import { requireLogin } from "../auth";
 
 const cartStore = useCartStore();
 const route = useRoute();
@@ -67,13 +68,15 @@ const updateQty = (change) => {
   }
 };
 
-const addToCart = () => {
+const addToCart = async () => {
+  if (!(await requireLogin(router, route.fullPath))) return;
   if (game.value) {
     cartStore.addToCart(game.value, amount.value);
   }
 };
 
-const buyNow = () => {
+const buyNow = async () => {
+  if (!(await requireLogin(router, route.fullPath))) return;
   cartStore.prepareCheckout("single", game.value, amount.value);
   router.push("/checkout");
 };
