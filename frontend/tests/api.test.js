@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { api, clearApiCache, formatEndpoint, getBaseUrl, getCachedData, setCachedData, trimTrailingSlashes } from '../src/api';
+import { api, clearApiCache, onCatalogChange, formatEndpoint, getBaseUrl, getCachedData, setCachedData, trimTrailingSlashes } from '../src/api';
 
 afterEach(() => {
     vi.unstubAllGlobals();
@@ -160,6 +160,29 @@ describe('api() and helpers', () => {
         const after = await api('/games');
         expect(after).toEqual({ count: 2 });
         expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('tells other open tabs when a save succeeds, so the shop refreshes next to the back office', async () => {
+        vi.stubGlobal('fetch', vi.fn()
+            .mockResolvedValueOnce({ ok: false, status: 422, json: () => Promise.resolve({}) })
+            .mockResolvedValueOnce({ ok: true, status: 201, json: () => Promise.resolve({ id: 'h2' }) }));
+        document.cookie = 'XSRF-TOKEN=valid-token; path=/';
+        localStorage.removeItem('catalog:changed');
+
+        await expect(api('/admin/highlights', { method: 'POST', body: '{}' })).rejects.toThrow();
+        expect(localStorage.getItem('catalog:changed')).toBeNull();
+        await api('/admin/highlights', { method: 'POST', body: '{}' });
+        expect(Number(localStorage.getItem('catalog:changed'))).toBeGreaterThan(0);
+    });
+
+    it('onCatalogChange fires only for the change key from another tab, until unsubscribed', () => {
+        const cb = vi.fn();
+        const off = onCatalogChange(cb);
+        window.dispatchEvent(new StorageEvent('storage', { key: 'api_cache:/api/games' }));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'catalog:changed' }));
+        off();
+        window.dispatchEvent(new StorageEvent('storage', { key: 'catalog:changed' }));
+        expect(cb).toHaveBeenCalledTimes(1);
     });
 
     it('trims trailing slashes safely without ReDoS', () => {

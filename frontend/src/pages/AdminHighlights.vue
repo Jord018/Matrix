@@ -23,12 +23,12 @@ const openModal = () => {
 
 const save = async () => {
   try {
-    await api('/admin/highlights', {
+    const created = await api('/admin/highlights', {
       method: 'POST',
       body: JSON.stringify({ ...form.value, customImage: form.value.customImage || null }),
     })
     open.value = false
-    await load()
+    highlights.value.push(created)
   } catch (e) {
     error.value = Object.values(e.data?.errors || {})[0]?.[0] || e.message
   }

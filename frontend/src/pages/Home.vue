@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { api, getCachedData, setCachedData } from "../api";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { api, getCachedData, onCatalogChange, setCachedData } from "../api";
 import HighlightCarousel from "../components/HighlightCarousel.vue";
 import GameCard from "../components/GameCard.vue";
 import Pagination from "../components/Pagination.vue";
@@ -43,41 +43,32 @@ const extractArrayData = (res) => {
 };
 
 // ดึงข้อมูลเกมและไฮไลท์จาก API ในพื้นหลัง (Stale-While-Revalidate)
-const fetchHomeData = async () => {
-  try {
-    if (allGames.value.length === 0) {
-      loading.value = true;
-    }
-    const [gamesRes, highlightsRes] = await Promise.all([
-      api("/games", { forceRefresh: true }).catch(() => null),
-      api("/highlights", { forceRefresh: true }).catch(() => null),
-    ]);
-
-    if (gamesRes !== null) {
-      const freshGames = extractArrayData(gamesRes);
-      allGames.value = freshGames;
-      if (freshGames.length > 0) {
-        setCachedData("/games", freshGames);
-      }
-    }
-
-    if (highlightsRes !== null) {
-      const freshHighlights = extractArrayData(highlightsRes);
-      highlights.value = freshHighlights;
-      if (freshHighlights.length > 0) {
-        setCachedData("/highlights", freshHighlights);
-      }
-    }
-  } catch (error) {
-    console.error("Failed to fetch home data:", error);
-  } finally {
-    loading.value = false;
-  }
+// Each section updates as soon as its own response arrives: the carousel doesn't wait for the big games list.
+const refresh = async (path, target) => {
+  const res = await api(path, { forceRefresh: true }).catch(() => null);
+  if (res === null) return;
+  const fresh = extractArrayData(res);
+  target.value = fresh;
+  if (fresh.length > 0) setCachedData(path, fresh);
 };
 
+const fetchHomeData = async () => {
+  if (allGames.value.length === 0) {
+    loading.value = true;
+  }
+  // Highlights first: the dev server answers one request at a time and the carousel sits at the top.
+  const highlightsDone = refresh("/highlights", highlights);
+  await refresh("/games", allGames);
+  loading.value = false;
+  await highlightsDone;
+};
+
+let stopWatchingChanges;
 onMounted(() => {
   fetchHomeData();
+  stopWatchingChanges = onCatalogChange(fetchHomeData);
 });
+onUnmounted(() => stopWatchingChanges?.());
 
 // เมื่อกดเปลี่ยนหน้า
 const handlePageChange = (page) => {
@@ -103,7 +94,7 @@ const handleAddToCart = async (payload) => {
   <div class="store-container mt-4 mb-12">
     <!-- Skeleton Loaders สำหรับ Carousel -->
     <div
-      v-if="loading"
+      v-if="loading && !highlights.length"
       class="animate-pulse w-full max-w-[1200px] mx-auto h-[350px] bg-white/10 rounded-2xl mb-8"
     ></div>
     <HighlightCarousel v-else :highlights="highlights" />

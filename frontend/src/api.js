@@ -114,6 +114,18 @@ export const clearApiCache = () => {
     safeStorage.clearSnapshotKeys(CACHE_STORAGE_PREFIX);
 };
 
+// A save in one tab (e.g. the back office) tells every other open tab (e.g. the shop) to refetch.
+// Browsers fire "storage" events only in the *other* tabs of the same origin.
+const CATALOG_CHANGED_KEY = 'catalog:changed';
+
+export const onCatalogChange = (cb) => {
+    const handler = (e) => {
+        if (e.key === CATALOG_CHANGED_KEY) cb();
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+};
+
 export const getCachedData = (path, maxAge = DEFAULT_STORAGE_TTL) => {
     const url = formatEndpoint(path);
     const mem = apiCache.get(url);
@@ -177,6 +189,9 @@ export async function api(path, options = {}) {
             if (!res.ok) {
                 const data = await res.json?.().catch(() => null);
                 throw Object.assign(new Error(`API ${res.status}: ${path}`), { status: res.status, data });
+            }
+            if (method !== 'GET') {
+                safeStorage.setItem(CATALOG_CHANGED_KEY, String(Date.now()));
             }
             if (res.status === 204) {
                 return null;

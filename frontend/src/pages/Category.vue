@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { requireLogin } from "../auth";
-import { api } from "../api";
+import { api, onCatalogChange } from "../api";
 import GameCard from "../components/GameCard.vue";
 import Pagination from "../components/Pagination.vue";
 import { useCartStore } from "../stores/cart";
@@ -40,10 +40,13 @@ const paginatedGames = computed(() => {
 });
 
 // ดึงข้อมูลจาก API ตามพารามิเตอร์ของ URL
-const fetchGames = async () => {
-  loading.value = true;
-  games.value = [];
-  currentPage.value = 1;
+// quiet: refresh in place after a back-office change (no skeleton, stay on the current page).
+const fetchGames = async ({ quiet = false } = {}) => {
+  if (!quiet) {
+    loading.value = true;
+    games.value = [];
+    currentPage.value = 1;
+  }
 
   try {
     let endpoint = "/games";
@@ -65,9 +68,12 @@ const fetchGames = async () => {
   }
 };
 
+let stopWatchingChanges;
 onMounted(() => {
   fetchGames();
+  stopWatchingChanges = onCatalogChange(() => fetchGames({ quiet: true }));
 });
+onUnmounted(() => stopWatchingChanges?.());
 
 watch(
   () => [route.path, route.query, route.params],
