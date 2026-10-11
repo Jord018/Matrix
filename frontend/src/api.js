@@ -1,7 +1,15 @@
 // Thin fetch wrapper for the Laravel API (supports configured base URL and relative endpoint).
 const xsrf = () => {
-    const m = /(?:^|; )XSRF-TOKEN=([^;]*)/.exec(document.cookie);
-    return m ? decodeURIComponent(m[1]) : null;
+    if (!document.cookie) return null;
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+        const trimmed = cookie.trim();
+        if (trimmed.startsWith('XSRF-TOKEN=')) {
+            const val = trimmed.slice(11);
+            return val ? decodeURIComponent(val) : null;
+        }
+    }
+    return null;
 };
 
 export const getBaseUrl = (env = import.meta.env) => {

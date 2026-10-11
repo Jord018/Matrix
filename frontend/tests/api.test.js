@@ -44,6 +44,7 @@ describe('api() and helpers', () => {
     });
 
     it('fetches csrf cookie on non-GET when XSRF-TOKEN is missing and appends token', async () => {
+        document.cookie = 'other_cookie=123; path=/';
         const fetch = vi
             .fn()
             .mockImplementationOnce(() => {
