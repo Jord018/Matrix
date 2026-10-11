@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import Navbar from '../src/components/Navbar.vue'
 
@@ -18,6 +19,7 @@ const router = createRouter({
 
 describe('Navbar.vue', () => {
     beforeEach(async () => {
+        setActivePinia(createPinia())
         router.push('/')
         await router.isReady()
     })
