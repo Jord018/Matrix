@@ -1,134 +1,203 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 
-const form = reactive({
+const form = ref({
   name: "",
   email: "",
   subject: "",
   message: "",
 });
 
-const isSuccess = ref(false);
+const isSubmitted = ref(false);
 
-const handleSubmit = () => {
-  console.log("Contact form submitted:", {
-    name: form.name,
-    email: form.email,
-    subject: form.subject,
-    message: form.message,
-  });
+const submitForm = () => {
+  // จำลองการส่งข้อมูล
+  console.log("Contact form submitted:", form.value);
+  isSubmitted.value = true;
 
-  form.name = "";
-  form.email = "";
-  form.subject = "";
-  form.message = "";
+  // ล้างฟอร์ม
+  form.value = { name: "", email: "", subject: "", message: "" };
 
-  isSuccess.value = true;
+  // ซ่อนข้อความแจ้งเตือนหลังผ่านไป 3 วินาที
   setTimeout(() => {
-    isSuccess.value = false;
+    isSubmitted.value = false;
   }, 3000);
 };
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-5xl">
-    <h1 class="text-3xl font-bold text-primary mb-6">Contact Us</h1>
-
-    <div v-if="isSuccess" class="mb-6 p-4 bg-green-100 text-green-700 rounded-lg font-semibold">
-      Message Sent!
+  <div class="container mx-auto px-4 mt-12 mb-16 min-h-[60vh] max-w-6xl">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-extrabold text-primary mb-4">Contact Us</h2>
+      <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+        Have a question about a game, your order, or just want to say hi? We're
+        here to help!
+      </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Contact Info & Map -->
-      <div class="bg-white p-6 rounded-xl shadow-md border space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-primary mb-4">Get in Touch</h2>
-          <div class="space-y-3 text-gray-700">
-            <p class="flex items-center gap-2">
-              <i class="fa-solid fa-envelope text-accent-red"></i>
-              <span>support@mousejerry.com</span>
-            </p>
-            <p class="flex items-center gap-2">
-              <i class="fa-solid fa-phone text-accent-red"></i>
-              <span>+66 12 345 6789</span>
-            </p>
-            <p class="flex items-center gap-2">
-              <i class="fa-solid fa-location-dot text-accent-red"></i>
-              <span>Chiang Mai University</span>
-            </p>
-          </div>
-        </div>
+    <div
+      class="flex flex-col lg:flex-row gap-12 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+    >
+      <!-- Left Column: Contact Info -->
+      <div
+        class="w-full lg:w-5/12 bg-primary p-10 text-white flex flex-col justify-between relative overflow-hidden"
+      >
+        <!-- Background Decoration -->
+        <div
+          class="absolute -right-16 -top-16 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl pointer-events-none"
+        ></div>
+        <div
+          class="absolute -left-16 -bottom-16 w-64 h-64 bg-accent-yellow opacity-10 rounded-full blur-2xl pointer-events-none"
+        ></div>
 
-        <div>
-          <h3 class="text-lg font-semibold text-primary mb-2">Our Location</h3>
-          <div class="w-full h-64 rounded-lg overflow-hidden border">
-            <iframe
-              title="Location Map"
-              class="w-full h-full border-0"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3777.0123!2d98.95!3d18.79!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTjCsDQ3JzI0LjAiTiA5OMKwNTcnMDAuMCJF!5e0!3m2!1sen!2sth!4v1234567890"
-              allowfullscreen=""
-              loading="lazy"
-            ></iframe>
-          </div>
+        <div class="relative z-10">
+          <h3 class="text-3xl font-bold mb-8 text-accent-yellow">
+            Get in Touch
+          </h3>
+
+          <ul class="space-y-8 text-lg">
+            <li class="flex items-start gap-4">
+              <i
+                class="fa-solid fa-location-dot mt-1 text-2xl text-accent-red w-8 text-center"
+              ></i>
+              <div>
+                <strong class="block text-xl mb-1">Our Office</strong>
+                <span class="text-gray-300 block leading-relaxed">
+                  College of Arts, Media and Technology (CAMT)<br />
+                  Chiang Mai University, Chiang Mai, Thailand
+                </span>
+              </div>
+            </li>
+            <li class="flex items-start gap-4">
+              <i
+                class="fa-solid fa-envelope mt-1 text-2xl text-accent-red w-8 text-center"
+              ></i>
+              <div>
+                <strong class="block text-xl mb-1">Email Us</strong>
+                <a
+                  href="mailto:support@mousejerry.com"
+                  class="text-gray-300 hover:text-white transition-colors"
+                  >support@mousejerry.com</a
+                >
+              </div>
+            </li>
+            <li class="flex items-start gap-4">
+              <i
+                class="fa-solid fa-phone mt-1 text-2xl text-accent-red w-8 text-center"
+              ></i>
+              <div>
+                <strong class="block text-xl mb-1">Call Us</strong>
+                <a
+                  href="tel:+66123456789"
+                  class="text-gray-300 hover:text-white transition-colors"
+                  >+66 12 345 6789</a
+                >
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
 
-      <!-- Contact Form -->
-      <div class="bg-white p-6 rounded-xl shadow-md border">
-        <h2 class="text-xl font-bold text-primary mb-4">Send us a Message</h2>
-        <form @submit.prevent="handleSubmit" class="space-y-4">
+      <!-- Right Column: Contact Form -->
+      <div class="w-full lg:w-7/12 p-10">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6">Send us a Message</h3>
+
+        <div
+          v-if="isSubmitted"
+          class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-md mb-6 transition-all"
+          role="alert"
+        >
+          <p class="font-bold">
+            <i class="fa-solid fa-circle-check mr-2"></i> Message Sent!
+          </p>
+          <p class="text-sm">
+            Thank you for contacting us. We will get back to you shortly.
+          </p>
+        </div>
+
+        <form @submit.prevent="submitForm" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label for="name" class="block text-gray-700 font-semibold mb-2"
+                >Your Name</label
+              >
+              <input
+                type="text"
+                id="name"
+                v-model="form.name"
+                required
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="John Doe"
+              />
+            </div>
+            <div>
+              <label for="email" class="block text-gray-700 font-semibold mb-2"
+                >Email Address</label
+              >
+              <input
+                type="email"
+                id="email"
+                v-model="form.email"
+                required
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="john@example.com"
+              />
+            </div>
+          </div>
+
           <div>
-            <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+            <label for="subject" class="block text-gray-700 font-semibold mb-2"
+              >Subject</label
+            >
             <input
-              id="name"
-              v-model="form.name"
               type="text"
-              required
-              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              required
-              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label for="subject" class="block text-sm font-semibold text-gray-700 mb-1">Subject</label>
-            <input
               id="subject"
               v-model="form.subject"
-              type="text"
               required
-              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              placeholder="How can we help you?"
             />
           </div>
 
           <div>
-            <label for="message" class="block text-sm font-semibold text-gray-700 mb-1">Message</label>
+            <label for="message" class="block text-gray-700 font-semibold mb-2"
+              >Message</label
+            >
             <textarea
               id="message"
               v-model="form.message"
               rows="4"
               required
-              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+              placeholder="Write your message here..."
             ></textarea>
           </div>
 
           <button
             type="submit"
-            class="w-full bg-accent-red text-white font-bold py-2.5 px-4 rounded-lg hover:brightness-110 transition-all"
+            class="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-md hover:bg-twilight hover:shadow-lg transition-all flex items-center justify-center gap-2"
           >
-            Send Message
+            <i class="fa-solid fa-paper-plane"></i> Send Message
           </button>
         </form>
       </div>
+    </div>
+
+    <!-- Map Section -->
+    <div
+      class="mt-12 rounded-2xl overflow-hidden shadow-sm border border-gray-100 h-[400px]"
+    >
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3777.100618057997!2d98.9507963153574!3d18.795123587249457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30da3a6988894cb1%3A0x10f7601b0f55cf08!2sCollege%20of%20Arts%2C%20Media%20and%20Technology%20(CAMT)!5e0!3m2!1sen!2sth!4v1680000000000!5m2!1sen!2sth"
+        width="100%"
+        height="100%"
+        style="border: 0"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title="College of Arts, Media and Technology Location Map"
+      >
+      </iframe>
     </div>
   </div>
 </template>
