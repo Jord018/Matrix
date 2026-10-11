@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GameRequest;
 use App\Models\Game;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,5 +27,10 @@ class GameController extends Controller
     public function show(Game $game): JsonResponse
     {
         return response()->json($game);
+    }
+
+    public function store(GameRequest $request): JsonResponse
+    {
+        return response()->json(Game::create($request->gameData()), 201);
     }
 }
