@@ -40,4 +40,11 @@ class GameController extends Controller
 
         return response()->json($game);
     }
+
+    public function destroy(Game $game): JsonResponse
+    {
+        $game->delete();
+
+        return response()->json(['message' => 'Deleted.']);
+    }
 }
