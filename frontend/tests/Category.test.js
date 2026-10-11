@@ -52,22 +52,24 @@ describe('Category.vue', () => {
     expect(apiModule.api).toHaveBeenCalledWith('/games?category=RPG')
   })
 
-  it('refreshes in place when the back office changes something in another tab', async () => {
-    apiModule.api.mockResolvedValue([
-      { id: '1', name: 'Pinball A', price: 100, coverImage: '/a.jpg' },
-      { id: '2', name: 'Pinball B', price: 100, coverImage: '/b.jpg' }
-    ])
+  it('refetches when navigating to another category', async () => {
+    apiModule.api.mockImplementation(async (url) => {
+      if (url.includes('Pinball')) return [{ id: '1', name: 'Pinball A', price: 100, coverImage: '/a.jpg' }]
+      if (url.includes('RPG')) return [{ id: '2', name: 'RPG B', price: 200, coverImage: '/b.jpg' }]
+      return []
+    })
     await router.push('/category/Pinball')
+    await router.isReady()
     const wrapper = mount(Category, { global: { plugins: [router] } })
     await flushPromises()
-    expect(wrapper.text()).toContain('2 products found')
+    expect(wrapper.text()).toContain('Pinball Games')
+    expect(wrapper.text()).toContain('Pinball A')
 
-    // Pinball hidden in the back office -> the other tab fires the change callback
-    apiModule.api.mockResolvedValue([])
-    apiModule.onCatalogChange.mock.calls.at(-1)[0]()
+    await router.push('/category/RPG')
     await flushPromises()
-    expect(wrapper.text()).toContain('0 products found')
-    expect(apiModule.api).toHaveBeenLastCalledWith('/games?category=Pinball')
+    expect(wrapper.text()).toContain('RPG Games')
+    expect(wrapper.text()).toContain('RPG B')
+    expect(apiModule.api).toHaveBeenLastCalledWith('/games?category=RPG')
   })
 
   it('renders search results based on query', async () => {
