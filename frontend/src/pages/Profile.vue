@@ -23,7 +23,7 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
 </script>
 
 <template>
-  <div class="container mx-auto px-4 pb-12 max-w-6xl">
+  <div class="store-container pb-12">
     <div class="profile-card">
       <div class="profile-info">
         <div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>
@@ -74,16 +74,17 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(54, 1, 133, 0.08);
-  padding: 3rem;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  margin: 3rem 0;
+  margin: 1.5rem 0 3rem;
   border-top: 5px solid var(--primary);
   animation: drop-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .profile-info { display: flex; align-items: center; gap: 2.5rem; }
+.avatar-placeholder { margin-right: 1rem; }
 .avatar-placeholder {
   width: 120px;
   height: 120px;
@@ -127,6 +128,8 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
   box-shadow: 0 5px 15px rgba(222, 26, 88, 0.3);
 }
 .section-title {
+  position: relative;
+  padding-bottom: 10px;
   font-weight: 800;
   font-size: 1.75rem;
   color: var(--primary);
@@ -148,11 +151,11 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
-.order-header h5 { font-weight: 700; color: var(--primary); }
+.order-header h5 { font-weight: 700; font-size: 1.25rem; color: #0d6efd; }
 .order-date { color: #94a3b8; font-size: 0.9rem; }
 .game-key-item {
   display: flex;
@@ -165,7 +168,8 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
 }
 .game-thumb {
   width: 80px;
-  height: 110px;
+  height: 100px;
+  margin-right: 1rem;
   flex-shrink: 0;
   object-fit: cover;
   border-radius: 6px;
@@ -175,16 +179,16 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
 .game-info h6 { font-weight: bold; margin-bottom: 0.5rem; color: #1e293b; }
 .digital-key {
   font-family: monospace;
-  background: #cbd5e1;
-  padding: 8px 15px;
-  border-radius: 6px;
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
   font-size: 1.1rem;
   font-weight: bold;
   color: #0f172a;
   letter-spacing: 1px;
   display: inline-block;
   margin: 0 5px 5px 0;
-  border: 1px dashed #94a3b8;
+  border: 1px solid #dee2e6;
   overflow-wrap: anywhere;
 }
 .no-purchases {
@@ -205,6 +209,17 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
   font-weight: bold;
 }
 .browse-btn:hover { background: var(--primary); color: white; }
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50px;
+  height: 4px;
+  background-color: var(--accent-yellow);
+  border-radius: 2px;
+}
 
 @keyframes drop-in { from { opacity: 0; transform: translateY(-30px); } }
 @keyframes slide-in { from { opacity: 0; transform: translateX(-20px); } }

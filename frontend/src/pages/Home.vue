@@ -78,7 +78,7 @@ const handleAddToCart = async (payload) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-4 mb-12 max-w-7xl">
+  <div class="store-container mt-4 mb-12">
     <!-- Skeleton Loaders สำหรับ Carousel -->
     <div
       v-if="loading"

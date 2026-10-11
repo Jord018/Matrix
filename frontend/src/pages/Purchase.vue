@@ -58,7 +58,7 @@ const confirmPurchase = async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-6 mb-12 min-h-[60vh] max-w-[850px]">
+  <div class="store-container mt-6 mb-12 min-h-[60vh] max-w-[850px]">
     <h2 class="mb-5 text-3xl font-extrabold text-primary">
       <i class="fa-solid fa-money-check-dollar me-2"></i> Complete Your Purchase
     </h2>

@@ -12,7 +12,7 @@ const handleCheckout = () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-6 mb-12 min-h-[60vh] max-w-6xl">
+  <div class="store-container mt-12 mb-12 min-h-[60vh]">
     <h2 class="mb-6 text-3xl font-extrabold text-primary">
       <i class="fa-solid fa-cart-shopping me-2"></i> Your Cart
     </h2>

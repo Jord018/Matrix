@@ -20,6 +20,24 @@
     --bg-dark-twilight: #0a0314;
 }
 
+/* Tailwind v4 defaults borders to currentColor; the old store (v3/Bootstrap look) uses light gray. */
+@layer base {
+    *, ::after, ::before, ::backdrop, ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+/* Bootstrap .container widths, so storefront pages line up with the old store.
+   In the components layer so a page can still narrow it with a max-w-* utility. */
+@layer components {
+    .store-container { width: 100%; margin-inline: auto; padding-inline: 0.75rem; }
+    @media (min-width: 576px) { .store-container { max-width: 540px; } }
+    @media (min-width: 768px) { .store-container { max-width: 720px; } }
+    @media (min-width: 992px) { .store-container { max-width: 960px; } }
+    @media (min-width: 1200px) { .store-container { max-width: 1140px; } }
+    @media (min-width: 1400px) { .store-container { max-width: 1320px; } }
+}
+
 body {
     background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

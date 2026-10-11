@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 my-6 lg:my-12 max-w-6xl">
+  <div class="store-container my-6 lg:my-12">
     <div class="bg-white rounded-[20px] shadow-[0_10px_40px_rgba(54,1,133,0.08)] p-6 lg:p-12 border-t-[6px] border-primary font-['Expletus_Sans',sans-serif]">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         <!-- Left Column: Contact Links & Address -->
