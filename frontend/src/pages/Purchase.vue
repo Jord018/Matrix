@@ -2,6 +2,7 @@
 import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
+import { api } from "../api";
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -26,29 +27,22 @@ const checkoutTotalPrice = computed(() => {
   );
 });
 
-const generateKeySegment = () => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const randomValues = new Uint8Array(5);
-  window.crypto.getRandomValues(randomValues);
-  return Array.from(randomValues, (byte) => chars[byte % chars.length]).join("");
-};
-
-const confirmPurchase = () => {
+const confirmPurchase = async () => {
   try {
-    // Generate order data for MyKeys page
-    const itemsWithKeys = cartStore.checkoutItems.map((cartItem) => {
-      const generatedKeys = [];
-      for (let i = 0; i < cartItem.quantity; i++) {
-        const randomKey = `${generateKeySegment()}-${generateKeySegment()}-${generateKeySegment()}`;
-        generatedKeys.push(randomKey);
-      }
-      return {
-        gameName: cartItem.game.title || cartItem.game.name,
-        coverImage: cartItem.game.coverImage,
-        keys: generatedKeys,
-      };
+    const payload = {
+      items: cartStore.checkoutItems.map((item) => ({
+        gameId: item.game.id || item.game._id,
+        amount: item.quantity,
+      })),
+      username: "Guest",
+    };
+
+    const res = await api("/orders", {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
 
+    const itemsWithKeys = res?.data?.items ?? res?.items ?? res?.data ?? (Array.isArray(res) ? res : []);
     cartStore.setLastOrder(itemsWithKeys);
 
     if (cartStore.checkoutType === "cart") {
