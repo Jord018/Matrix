@@ -161,4 +161,41 @@ describe('Navbar.vue', () => {
         const { routes } = await import('../src/router')
         expect(routes.find((r) => r.path === '/profile').meta.auth).toBe(true)
     })
+
+    it('toggles mobile menu, submits mobile search, and navigates links', async () => {
+        const apiModule = await import('../src/api')
+        vi.spyOn(apiModule, 'api').mockResolvedValue([{ id: 1, name: 'Action', isVisible: true }])
+
+        const wrapper = mount(Navbar, { global: { plugins: [router] } })
+        await flushPromises()
+
+        // 1. Toggle mobile menu open
+        const toggleBtn = wrapper.find('button[aria-label="Toggle navigation"]')
+        await toggleBtn.trigger('click')
+        expect(wrapper.find('#mobile-search').exists()).toBe(true)
+
+        // 2. Mobile search
+        const mobileInput = wrapper.find('#mobile-search')
+        await mobileInput.setValue('Zelda')
+        await wrapper.find('.lg\\:hidden form').trigger('submit.prevent')
+        await flushPromises()
+        expect(router.currentRoute.value.path).toBe('/search')
+        expect(router.currentRoute.value.query.q).toBe('Zelda')
+
+        // 3. Re-open mobile menu and toggle categories dropdown
+        await toggleBtn.trigger('click')
+        const mobileCatBtn = wrapper.findAll('.lg\\:hidden button').find((b) => b.text().includes('Category'))
+        await mobileCatBtn.trigger('click')
+
+        // 4. Click mobile category link closes mobile menu
+        const mobileCatLink = wrapper.findAll('.lg\\:hidden a').find((a) => a.text().includes('Action'))
+        await mobileCatLink.trigger('click')
+
+        // 5. Re-open and click contact link closes mobile menu
+        await toggleBtn.trigger('click')
+        const contactLink = wrapper.findAll('.lg\\:hidden a').find((a) => a.text().includes('Contact'))
+        await contactLink.trigger('click')
+    })
 })
+
+

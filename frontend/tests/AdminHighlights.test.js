@@ -96,4 +96,13 @@ describe('AdminHighlights', () => {
         expect(f.mock.calls[1][1].method).toBe('DELETE');
         expect(w.find('[data-test=empty]').exists()).toBe(true);
     });
+
+    it('deletes highlight from mobile card', async () => {
+        vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+        const { w, f } = await page(json({}));
+        await w.find('[data-test=hl-card] button').trigger('click');
+        await flushPromises();
+        expect(f.mock.calls[1][0]).toBe('/api/admin/highlights/h1');
+        expect(f.mock.calls[1][1].method).toBe('DELETE');
+    });
 });

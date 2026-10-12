@@ -61,4 +61,16 @@ describe('Pagination.vue', () => {
         expect(labels).toEqual(['«', '1', '2', '3', '4', '5', '6', '7', '»'])
         expect(wrapper.text()).not.toContain('...')
     })
+
+    it('emits page-changed when prev and next buttons are clicked on middle page', async () => {
+        const wrapper = mount(Pagination, { props: { currentPage: 3, totalPages: 5 } })
+        const prevBtn = wrapper.find('button[aria-label="Previous Page"]')
+        const nextBtn = wrapper.find('button[aria-label="Next Page"]')
+
+        await prevBtn.trigger('click')
+        expect(wrapper.emitted('page-changed')[0]).toEqual([2])
+
+        await nextBtn.trigger('click')
+        expect(wrapper.emitted('page-changed')[1]).toEqual([4])
+    })
 })

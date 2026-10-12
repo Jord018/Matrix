@@ -125,6 +125,20 @@ describe('AdminCategories', () => {
         expect(f.mock.calls[1][1].method).toBe('DELETE');
         expect(w.findAll('[data-test=cat-row]')).toHaveLength(1);
     });
+
+    it('supports actions on mobile cards', async () => {
+        const confirm = vi.fn().mockReturnValue(true);
+        vi.stubGlobal('confirm', confirm);
+        const { w } = await page(json({ isVisible: false }), json({}));
+        const card = w.find('[data-test=cat-card]');
+        await card.find('.btn-eye').trigger('click');
+        await flushPromises();
+        await card.findAll('button').find((b) => b.text() === 'Edit').trigger('click');
+        expect(w.find('dialog').exists()).toBe(true);
+        await w.find('button.btn-cancel').trigger('click');
+        await card.find('.btn-delete').trigger('click');
+        await flushPromises();
+    });
 });
 
 describe('AdminCategoryGames', () => {
@@ -184,5 +198,13 @@ describe('AdminCategoryGames', () => {
         await w.find('button').trigger('click');
         expect(f).toHaveBeenCalledTimes(2);
         expect(w.findAll('[data-test=game]')).toHaveLength(1);
+    });
+
+    it('deletes a game from mobile card', async () => {
+        vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+        const { w, f } = await view('RPG', json(CATS()), json(GAMES), json({}));
+        await w.find('.admin-card button.btn-delete').trigger('click');
+        await flushPromises();
+        expect(f.mock.calls[2][0]).toBe('/api/admin/games/g1');
     });
 });

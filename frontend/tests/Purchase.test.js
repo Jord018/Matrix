@@ -147,4 +147,23 @@ describe('Purchase.vue', () => {
         expect(pushSpy).not.toHaveBeenCalledWith('/success')
         expect(store.checkoutItems.length).toBe(1)
     })
+
+    it('handles game with _id and array response', async () => {
+        const store = useCartStore()
+        const pushSpy = vi.spyOn(router, 'push')
+        vi.spyOn(apiModule, 'api').mockResolvedValue([{ key: 'ARRAY-KEY' }])
+
+        const mongoGame = { _id: 'm1', name: 'Mongo Game', price: 100, coverImage: '/m.jpg' }
+        store.prepareCheckout('single', mongoGame, 1)
+
+        const wrapper = mount(Purchase, { global: { plugins: [router] } })
+        expect(wrapper.text()).toContain('Mongo Game')
+
+        const confirmBtn = wrapper.find('button.btn-confirm')
+        await confirmBtn.trigger('click')
+        await flushPromises()
+
+        expect(store.lastOrder).toEqual([{ key: 'ARRAY-KEY' }])
+        expect(pushSpy).toHaveBeenCalledWith('/success')
+    })
 })
