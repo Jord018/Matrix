@@ -70,6 +70,7 @@ defineProps({ title: { type: String, required: true } })
   font-size: 0.95rem;
   margin-bottom: 2.5rem;
   line-height: 1.5;
+  animation-delay: 0.8s;
 }
 
 .form-side :deep(.auth-subtitle a) {
@@ -134,6 +135,7 @@ defineProps({ title: { type: String, required: true } })
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(54, 1, 133, 0.3);
+  animation-delay: 0.9s;
 }
 
 .form-side :deep(.auth-btn:hover) {
@@ -144,13 +146,13 @@ defineProps({ title: { type: String, required: true } })
 
 .form-side :deep(.error-box) {
   background: #ffeaa7;
-  color: #d63031;
+  color: #b02a37;
   padding: 1rem;
   border-radius: 8px;
   font-weight: bold;
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
-  border-left: 4px solid #d63031;
+  border-left: 4px solid #b02a37;
 }
 
 .brand-side {
@@ -175,11 +177,13 @@ defineProps({ title: { type: String, required: true } })
   font-weight: 700;
   line-height: 1.2;
   margin-top: 2rem;
+  animation-delay: 0.75s;
 }
 
 .brand-footer {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
+  animation-delay: 0.9s;
 }
 
 .brand-footer a {
@@ -198,13 +202,9 @@ defineProps({ title: { type: String, required: true } })
 .form-side :deep(.input-group:nth-of-type(2)) { animation-delay: 0.5s; }
 .form-side :deep(.input-group:nth-of-type(3)) { animation-delay: 0.6s; }
 .form-side :deep(.input-group:nth-of-type(4)) { animation-delay: 0.7s; }
-.form-side :deep(.auth-subtitle) { animation-delay: 0.8s; }
-.form-side :deep(.auth-btn) { animation-delay: 0.9s; }
 .brand-logo, .brand-tagline, .brand-footer {
   animation: auth-slide 0.8s cubic-bezier(0.33, 1, 0.68, 1) 0.6s both;
 }
-.brand-tagline { animation-delay: 0.75s; }
-.brand-footer { animation-delay: 0.9s; }
 
 @keyframes auth-pop { from { opacity: 0; transform: scale(0.95); } }
 @keyframes auth-rise { from { opacity: 0; transform: translateY(15px); } }
