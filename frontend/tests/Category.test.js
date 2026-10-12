@@ -103,4 +103,86 @@ describe('Category.vue', () => {
     expect(wrapper.text()).toContain('No games found!')
     expect(wrapper.find('a.bg-accent-red').exists()).toBe(true) // ปุ่ม Back
   })
-})
+
+  it('handles res.data format and unexpected object format', async () => {
+    apiModule.api.mockResolvedValue({
+      data: [{ id: '10', name: 'Data Game', price: 300, coverImage: '/d.jpg' }]
+    })
+    await router.push('/category/Action')
+    await router.isReady()
+    const wrapper = mount(Category, { global: { plugins: [router] } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('Data Game')
+
+    apiModule.api.mockResolvedValue({ unexpected: true })
+    await router.push('/category/Puzzle')
+    await flushPromises()
+    expect(wrapper.text()).toContain('0 products found')
+  })
+
+  it('handles error in fetchGames gracefully', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    apiModule.api.mockImplementationOnce(() => { throw new Error('Crash') })
+    await router.push('/category/RPG')
+    await router.isReady()
+    const wrapper = mount(Category, { global: { plugins: [router] } })
+    await flushPromises()
+    expect(consoleSpy).toHaveBeenCalledWith('Failed to fetch category data:', expect.any(Error))
+  })
+
+  it('changes page via pagination and scrolls', async () => {
+    const mockGames = Array.from({ length: 25 }, (_, i) => ({
+      id: `game-${i + 1}`,
+      name: `Game ${i + 1}`,
+      price: 100,
+      coverImage: '/g.jpg'
+    }))
+    apiModule.api.mockResolvedValue(mockGames)
+    await router.push('/category/RPG')
+    await router.isReady()
+    const wrapper = mount(Category, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const pagination = wrapper.findComponent({ name: 'Pagination' })
+    expect(pagination.exists()).toBe(true)
+    pagination.vm.$emit('page-changed', 2)
+    await flushPromises()
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+  })
+
+  it('adds game to cart when logged in and ignores when not', async () => {
+    const mockGames = [
+      { id: 'g1', name: 'Game 1', price: 100, coverImage: '/g1.jpg' },
+      { _id: 'g2', name: 'Game 2', price: 200, coverImage: '/g2.jpg' }
+    ]
+    apiModule.api.mockResolvedValue(mockGames)
+    await router.push('/category/RPG')
+    await router.isReady()
+
+    const authModule = await import('../src/auth')
+    const cartStore = (await import('../src/stores/cart')).useCartStore()
+
+    // 1. Guest: requireLogin returns false
+    vi.spyOn(authModule, 'requireLogin').mockResolvedValueOnce(false)
+    const wrapper = mount(Category, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const gameCards = wrapper.findAllComponents({ name: 'GameCard' })
+    gameCards[0].vm.$emit('add-to-cart', { gameId: 'g1', amount: 1 })
+    await flushPromises()
+    expect(cartStore.items).toHaveLength(0)
+
+    // 2. User logged in: requireLogin returns true, add by id
+    vi.spyOn(authModule, 'requireLogin').mockResolvedValueOnce(true)
+    gameCards[0].vm.$emit('add-to-cart', { gameId: 'g1', amount: 2 })
+    await flushPromises()
+    expect(cartStore.items).toHaveLength(1)
+    expect(cartStore.items[0].quantity).toBe(2)
+
+    // 3. Add game by _id
+    vi.spyOn(authModule, 'requireLogin').mockResolvedValueOnce(true)
+    gameCards[1].vm.$emit('add-to-cart', { gameId: 'g2', amount: 1 })
+    await flushPromises()
+    expect(cartStore.items).toHaveLength(2)
+  })
+})

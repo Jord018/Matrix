@@ -150,7 +150,26 @@ describe('ProductDetail.vue', () => {
     await openLightboxBtn.trigger('click')
     expect(wrapper.find('button[aria-label="Close Lightbox"]').exists()).toBe(true)
 
+    // Close via close button
     await wrapper.find('button[aria-label="Close"]').trigger('click')
     expect(wrapper.find('button[aria-label="Close Lightbox"]').exists()).toBe(false)
+
+    // Reopen and close via backdrop button
+    await openLightboxBtn.trigger('click')
+    await wrapper.find('button[aria-label="Close Lightbox"]').trigger('click')
+    expect(wrapper.find('button[aria-label="Close Lightbox"]').exists()).toBe(false)
+  })
+
+  it('renders minimal game without screenshots and categories', async () => {
+    apiModule.api.mockResolvedValue({
+      id: 'simple-1',
+      name: 'Simple Game',
+      price: 100,
+    })
+    const wrapper = mount(ProductDetail, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Simple Game')
+    expect(wrapper.text()).toContain('No screenshots available')
   })
 })
