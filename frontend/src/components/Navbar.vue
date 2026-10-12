@@ -51,16 +51,22 @@ const extractCategoriesFromGames = (games) => {
   return Array.from(catSet, (name, i) => ({ id: i + 1, name }));
 };
 
+const extractList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  return null;
+};
+
 const fetchCategories = async () => {
   const res = await api("/categories").catch(() => null);
-  const list = Array.isArray(res) ? res : (res && Array.isArray(res.data) ? res.data : null);
+  const list = extractList(res);
   if (Array.isArray(list) && list.length > 0) {
     categories.value = list.filter((c) => c.isVisible !== false);
     return;
   }
 
   const games = await api("/games").catch(() => []);
-  const gamesList = Array.isArray(games) ? games : (games && Array.isArray(games.data) ? games.data : []);
+  const gamesList = extractList(games) || [];
   if (Array.isArray(gamesList) && gamesList.length > 0) {
     const extracted = extractCategoriesFromGames(gamesList);
     if (extracted.length > 0) {
