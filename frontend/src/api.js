@@ -15,7 +15,7 @@ const xsrf = () => {
 export const trimTrailingSlashes = (str) => {
     if (typeof str !== 'string') return '';
     let end = str.length;
-    while (end > 0 && str.charCodeAt(end - 1) === 47 /* '/' */) {
+    while (end > 0 && str.codePointAt(end - 1) === 47 /* '/' */) {
         end--;
     }
     return str.slice(0, end);
@@ -84,7 +84,7 @@ const safeStorage = {
                 const keysToRemove = [];
                 for (let i = 0; i < window.localStorage.length; i++) {
                     const k = window.localStorage.key(i);
-                    if (k && k.startsWith(prefix)) {
+                    if (k?.startsWith(prefix)) {
                         keysToRemove.push(k);
                     }
                 }
@@ -102,14 +102,14 @@ const apiCache = new Map();
 const inFlightRequests = new Map();
 const DEFAULT_STORAGE_TTL = 300000; // 5 minutes in localStorage for instant reload
 const CACHE_STORAGE_PREFIX = 'api_cache:';
-const CATALOG_ROUTES = /^\/?(categories|highlights|games|search)($|[\/?])/i;
+const CATALOG_ROUTES = /^\/?(categories|highlights|games|search)($|[/?])/i;
 
 export const isCacheableRequest = (path, method = 'GET', options = {}) => {
     const m = method.toUpperCase();
     if (m !== 'GET') return false;
     if (options.cache === false) return false;
     if (options.cache === true) return true;
-    if (/^\/?(admin|sanctum|user|auth|orders)($|[\/?])/i.test(path)) return false;
+    if (/^\/?(admin|sanctum|user|auth|orders)($|[/?])/i.test(path)) return false;
     return CATALOG_ROUTES.test(path);
 };
 
