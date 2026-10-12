@@ -144,7 +144,7 @@ const submit = async () => {
     <textarea id="require" v-model="requirements" class="form-control h-[200px]" placeholder="OS: &#10;Processor: &#10;Memory: &#10;Graphics: &#10;Storage: "></textarea>
   </form>
 
-  <dialog v-if="modalTarget !== null" open role="dialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 border-0 p-0 m-0 max-w-none max-h-none w-full h-full">
+  <dialog v-if="modalTarget !== null" open class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 border-0 p-0 m-0 max-w-none max-h-none w-full h-full">
     <div class="admin-modal">
       <h2 class="!font-sans !text-[#333]">Add Image URL</h2>
       <input v-model="modalUrl" type="url" placeholder="https://..." aria-label="Image URL" class="form-control mb-4" />

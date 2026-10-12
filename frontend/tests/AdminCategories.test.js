@@ -70,20 +70,20 @@ describe('AdminCategories', () => {
     it('adds a category through the modal and reloads', async () => {
         const { w, f } = await page(json({ id: 'c3' }, true, 201), json([...CATS(), { id: 'c3', name: 'Indie', isVisible: true }]));
         await w.find('button[aria-label="Add category"]').trigger('click');
-        expect(w.find('[role=dialog]').text()).toContain('Add New Category');
+        expect(w.find('dialog').text()).toContain('Add New Category');
         await w.find('#cat-name').setValue('Indie');
         await w.find('form').trigger('submit.prevent');
         await flushPromises();
         expect(f.mock.calls[1][1].method).toBe('POST');
         expect(JSON.parse(f.mock.calls[1][1].body)).toEqual({ name: 'Indie' });
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        expect(w.find('dialog').exists()).toBe(false);
         expect(w.findAll('[data-test=cat-row]')).toHaveLength(3);
     });
 
     it('renames through the edit modal', async () => {
         const { w, f } = await page(json({}), json(CATS()));
         await w.findAll('button').find((b) => b.text() === 'Edit').trigger('click');
-        expect(w.find('[role=dialog]').text()).toContain('Current Name: RPG');
+        expect(w.find('dialog').text()).toContain('Current Name: RPG');
         expect(w.find('#cat-name').element.value).toBe('RPG');
         await w.find('#cat-name').setValue('Role Playing');
         await w.find('form').trigger('submit.prevent');
@@ -99,8 +99,8 @@ describe('AdminCategories', () => {
         await w.find('form').trigger('submit.prevent');
         await flushPromises();
         expect(w.find('[role=alert]').text()).toContain('already been taken');
-        await w.findAll('[role=dialog] button').at(0).trigger('click');
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        await w.findAll('dialog button').at(0).trigger('click');
+        expect(w.find('dialog').exists()).toBe(false);
     });
 
     it('falls back to the generic error message', async () => {

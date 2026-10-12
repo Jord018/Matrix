@@ -88,14 +88,14 @@ describe('GameForm', () => {
         const { w } = await mountForm();
         await w.find('button[aria-label="Add cover"]').trigger('click');
         await w.find('input[aria-label="Image URL"]').setValue('http://x/new.png');
-        await w.findAll('[role=dialog] button').at(1).trigger('click');
+        await w.findAll('dialog button').at(1).trigger('click');
         expect(w.find('img[alt="Main Cover"]').attributes('src')).toBe('http://x/new.png');
         await w.find('button[aria-label="Remove cover"]').trigger('click');
         expect(w.find('img[alt="Main Cover"]').exists()).toBe(false);
 
         await w.find('button[aria-label="Add screenshot 2"]').trigger('click');
         await w.find('input[aria-label="Image URL"]').setValue('http://x/s.png');
-        await w.findAll('[role=dialog] button').at(1).trigger('click');
+        await w.findAll('dialog button').at(1).trigger('click');
         expect(w.findAll('[data-test=slot]')[2].find('img').exists()).toBe(true);
         await w.find('button[aria-label="Remove screenshot 2"]').trigger('click');
         expect(w.find('img[alt=Screenshot]').exists()).toBe(false);
@@ -106,10 +106,10 @@ describe('GameForm', () => {
         vi.stubGlobal('alert', alert);
         const { w } = await mountForm();
         await w.find('button[aria-label="Add cover"]').trigger('click');
-        await w.findAll('[role=dialog] button').at(1).trigger('click');
+        await w.findAll('dialog button').at(1).trigger('click');
         expect(alert).toHaveBeenCalledWith('Please enter a valid URL');
-        await w.findAll('[role=dialog] button').at(0).trigger('click');
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        await w.findAll('dialog button').at(0).trigger('click');
+        expect(w.find('dialog').exists()).toBe(false);
     });
 
     it('adds categories once and removes them', async () => {
