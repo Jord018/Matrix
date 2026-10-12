@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { api } from '../api'
 
 const highlights = ref([])
@@ -13,7 +13,7 @@ const load = async () => {
   highlights.value = data.highlights
   games.value = data.games
 }
-load()
+onMounted(load)
 
 const openModal = () => {
   form.value = { gameId: '', customImage: '', buttonColor: '#8b0000' }
@@ -81,7 +81,7 @@ const remove = async (h) => {
 
     <button type="button" aria-label="Add highlight" class="btn-add" @click="openModal">+</button>
 
-    <div v-if="open" role="dialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <dialog v-if="open" open class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 border-0 p-0 m-0 max-w-none max-h-none w-full h-full">
       <form class="admin-modal" @submit.prevent="save">
         <h2>New Highlight</h2>
         <p v-if="error" role="alert" class="text-accent-red mb-2">{{ error }}</p>
@@ -104,6 +104,6 @@ const remove = async (h) => {
           <button type="submit" class="btn-save">Save to Homepage</button>
         </div>
       </form>
-    </div>
+    </dialog>
   </div>
 </template>

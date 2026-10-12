@@ -48,7 +48,7 @@ describe('AdminHighlights', () => {
         await flushPromises();
         expect(f.mock.calls[1][1].method).toBe('POST');
         expect(JSON.parse(f.mock.calls[1][1].body)).toEqual({ gameId: 'g2', customImage: null, buttonColor: '#00ff00' });
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        expect(w.find('dialog').exists()).toBe(false);
         expect(w.findAll('[data-test=hl-row]').map((r) => r.text())).toEqual([expect.stringContaining('Zelda'), expect.stringContaining('Mario')]);
         expect(f).toHaveBeenCalledTimes(2);
     });
@@ -70,8 +70,8 @@ describe('AdminHighlights', () => {
         await w.find('form').trigger('submit.prevent');
         await flushPromises();
         expect(w.find('[role=alert]').text()).toContain('valid URL');
-        await w.findAll('[role=dialog] button').at(0).trigger('click');
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        await w.findAll('dialog button').at(0).trigger('click');
+        expect(w.find('dialog').exists()).toBe(false);
     });
 
     it('falls back to the generic message', async () => {

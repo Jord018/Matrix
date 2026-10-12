@@ -9,7 +9,8 @@ const games = ref([])
 
 const load = async () => {
   const search = route.query.search || ''
-  games.value = await api(`/admin/games${search ? `?search=${encodeURIComponent(search)}` : ''}`)
+  const endpoint = search ? `/admin/games?search=${encodeURIComponent(search)}` : '/admin/games'
+  games.value = await api(endpoint)
   if (search && games.value.length === 0) {
     alert(`Not found: "${search}"`)
     router.replace('/admin/back-game')

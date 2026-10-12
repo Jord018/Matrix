@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { api } from '../api'
 
 const categories = ref([])
@@ -7,7 +7,7 @@ const modal = ref(null) // { mode: 'add' | 'edit', category?, name }
 const error = ref('')
 
 const load = async () => { categories.value = await api('/admin/categories') }
-load()
+onMounted(load)
 
 const toggle = async (cat) => {
   const next = !cat.isVisible
@@ -83,7 +83,7 @@ const remove = async (cat) => {
 
     <button type="button" aria-label="Add category" class="btn-add" @click="openAdd">+</button>
 
-    <div v-if="modal" role="dialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <dialog v-if="modal" open class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 border-0 p-0 m-0 max-w-none max-h-none w-full h-full">
       <form class="admin-modal" @submit.prevent="save">
         <h2>{{ modal.mode === 'add' ? 'Add New Category' : 'Edit Category' }}</h2>
         <p v-if="modal.mode === 'edit'" class="mb-2">Current Name: <strong>{{ modal.category.name }}</strong></p>
@@ -95,6 +95,6 @@ const remove = async (cat) => {
           <button type="submit" class="btn-save">Save</button>
         </div>
       </form>
-    </div>
+    </dialog>
   </div>
 </template>

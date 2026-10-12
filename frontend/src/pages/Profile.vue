@@ -88,8 +88,8 @@ const formatDate = (d) => new Date(d).toLocaleDateString()
   animation: drop-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .profile-info { display: flex; align-items: center; gap: 2.5rem; }
-.avatar-placeholder { margin-right: 1rem; }
 .avatar-placeholder {
+  margin-right: 1rem;
   width: 120px;
   height: 120px;
   flex-shrink: 0;

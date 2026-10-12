@@ -1,9 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { api } from '../api'
 
 const orders = ref([])
-api('/admin/orders').then((o) => { orders.value = o })
+onMounted(async () => {
+  orders.value = (await api('/admin/orders')) || []
+})
 
 const when = (d) => new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 const qty = (item) => (item.keys ? item.keys.length : 1)
