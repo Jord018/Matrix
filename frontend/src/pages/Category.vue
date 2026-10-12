@@ -55,9 +55,13 @@ const fetchGames = async () => {
     }
 
     const res = await api(endpoint).catch(() => []);
-    games.value = Array.isArray(res)
-      ? res
-      : (res?.data && Array.isArray(res.data) ? res.data : []);
+    if (Array.isArray(res)) {
+      games.value = res;
+    } else if (Array.isArray(res?.data)) {
+      games.value = res.data;
+    } else {
+      games.value = [];
+    }
   } catch (error) {
     console.error("Failed to fetch category data:", error);
   } finally {
