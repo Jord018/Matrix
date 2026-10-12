@@ -11,7 +11,7 @@ const name = ref('')
 const price = ref('')
 const stock = ref('')
 const coverImage = ref('')
-const screenshots = ref(Array(SLOTS).fill(''))
+const screenshots = ref(new Array(SLOTS).fill(''))
 const categories = ref([])
 const description = ref('')
 const requirements = ref(formatRequirements(null))
@@ -84,7 +84,7 @@ const submit = async () => {
       <div class="img-box w-40 h-52">
         <template v-if="coverImage">
           <button type="button" aria-label="Remove cover" class="btn-x" @click="coverImage = ''">X</button>
-          <img :src="coverImage" alt="Main Image" class="w-full h-full object-cover rounded-lg" />
+          <img :src="coverImage" alt="Main Cover" class="w-full h-full object-cover rounded-lg" />
         </template>
         <button v-else type="button" aria-label="Add cover" class="img-box-empty text-4xl" @click="openModal('cover')">+</button>
       </div>
@@ -144,7 +144,7 @@ const submit = async () => {
     <textarea id="require" v-model="requirements" class="form-control h-[200px]" placeholder="OS: &#10;Processor: &#10;Memory: &#10;Graphics: &#10;Storage: "></textarea>
   </form>
 
-  <div v-if="modalTarget !== null" role="dialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+  <dialog v-if="modalTarget !== null" open role="dialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 border-0 p-0 m-0 max-w-none max-h-none w-full h-full">
     <div class="admin-modal">
       <h2 class="!font-sans !text-[#333]">Add Image URL</h2>
       <input v-model="modalUrl" type="url" placeholder="https://..." aria-label="Image URL" class="form-control mb-4" />
@@ -153,5 +153,5 @@ const submit = async () => {
         <button type="button" class="btn-save" @click="applyUrl">Confirm</button>
       </div>
     </div>
-  </div>
+  </dialog>
 </template>
