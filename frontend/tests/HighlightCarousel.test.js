@@ -37,4 +37,17 @@ describe('HighlightCarousel.vue', () => {
         const button = wrapper.find('a.px-8')
         expect(button.attributes('style')).toContain('background-color: rgb(255, 0, 0)')
     })
+
+    it('renders with default button color and uses id when gameId is missing', () => {
+        const mockHighlights = [
+            { id: 'item-1', name: 'Fallback Game', customImage: '/fallback.jpg' }
+        ]
+        const wrapper = mount(HighlightCarousel, {
+            props: { highlights: mockHighlights },
+            global: { plugins: [router] }
+        })
+        const button = wrapper.find('a.px-8')
+        expect(button.attributes('style')).toContain('background-color: rgb(139, 0, 0)')
+        expect(wrapper.find('a.block').attributes('href')).toBe('/product/item-1')
+    })
 })

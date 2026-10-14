@@ -22,6 +22,14 @@ export async function login(username, password) {
     return auth.user;
 }
 
+// Guests are sent to /login, which brings them back to `redirect` afterwards.
+export async function requireLogin(router, redirect) {
+    await loadUser();
+    if (auth.user) return true;
+    router.push({ path: '/login', query: { redirect } });
+    return false;
+}
+
 export async function logout() {
     await api('/logout', { method: 'POST' });
     auth.user = null;

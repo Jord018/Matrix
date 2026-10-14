@@ -98,4 +98,49 @@ describe('Cart.vue & Store', () => {
     
     expect(pushSpy).toHaveBeenCalledWith('/checkout')
   })
+
+  it('decreases item quantity in Cart.vue', async () => {
+    const store = useCartStore()
+    store.addToCart(mockGame, 3)
+
+    const wrapper = mount(Cart, { global: { plugins: [router] } })
+    const minusBtn = wrapper.find('button[aria-label="Decrease quantity"]')
+
+    await minusBtn.trigger('click')
+    expect(store.items[0].quantity).toBe(2)
+  })
+
+  it('covers cart store addToCart existing item and updateQuantity bounds', () => {
+    const store = useCartStore()
+    // 1. Add new item
+    store.addToCart(mockGame, 2)
+    // 2. Add existing item
+    store.addToCart(mockGame, 2)
+    expect(store.items[0].quantity).toBe(4)
+
+    // 3. Add beyond stock
+    store.addToCart(mockGame, 5)
+    expect(store.items[0].quantity).toBe(5)
+
+    // 4. Update quantity down past 1
+    store.updateQuantity(mockGame.id, -10)
+    expect(store.items[0].quantity).toBe(5)
+
+    // 5. Update non-existing game id
+    store.updateQuantity('non-existent', 1)
+
+    // 6. prepareCheckout 'single' and 'cart'
+    store.prepareCheckout('single', mockGame, 2)
+    expect(store.checkoutType).toBe('single')
+    expect(store.checkoutItems).toHaveLength(1)
+
+    store.prepareCheckout('cart')
+    expect(store.checkoutType).toBe('cart')
+
+    // 7. setLastOrder and clearCart
+    store.setLastOrder([{ orderId: 'ord1' }])
+    expect(store.lastOrder).toHaveLength(1)
+    store.clearCart()
+    expect(store.items).toHaveLength(0)
+  })
 })

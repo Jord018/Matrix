@@ -125,4 +125,51 @@ describe('ProductDetail.vue', () => {
 
     expect(pushSpy).toHaveBeenCalledWith('/checkout')
   })
+
+  it('navigates slides, adds to cart, and toggles lightbox', async () => {
+    apiModule.api.mockResolvedValue(mockGame)
+    const wrapper = mount(ProductDetail, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const nextBtn = wrapper.find('button[aria-label="Next screenshot"]')
+    const prevBtn = wrapper.find('button[aria-label="Previous screenshot"]')
+
+    await nextBtn.trigger('click')
+    expect(wrapper.find('#mainSliderImage').attributes('src')).toBe('/ss1.jpg')
+
+    await prevBtn.trigger('click')
+    expect(wrapper.find('#mainSliderImage').attributes('src')).toBe('/cover.jpg')
+
+    await prevBtn.trigger('click')
+    expect(wrapper.find('#mainSliderImage').attributes('src')).toBe('/ss2.jpg')
+
+    const addBtn = wrapper.findAll('button').find(btn => btn.text().includes('Add to cart'))
+    await addBtn.trigger('click')
+
+    const openLightboxBtn = wrapper.find('button[aria-label="Open full size preview"]')
+    await openLightboxBtn.trigger('click')
+    expect(wrapper.find('button[aria-label="Close Lightbox"]').exists()).toBe(true)
+
+    // Close via close button
+    await wrapper.find('button[aria-label="Close"]').trigger('click')
+    expect(wrapper.find('button[aria-label="Close Lightbox"]').exists()).toBe(false)
+
+    // Reopen and close via backdrop button
+    await openLightboxBtn.trigger('click')
+    await wrapper.find('button[aria-label="Close Lightbox"]').trigger('click')
+    expect(wrapper.find('button[aria-label="Close Lightbox"]').exists()).toBe(false)
+  })
+
+  it('renders minimal game without screenshots and categories', async () => {
+    apiModule.api.mockResolvedValue({
+      id: 'simple-1',
+      name: 'Simple Game',
+      price: 100,
+    })
+    const wrapper = mount(ProductDetail, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Simple Game')
+    expect(wrapper.text()).toContain('No screenshots available')
+  })
 })

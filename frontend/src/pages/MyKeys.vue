@@ -10,7 +10,6 @@ const copyKey = async (keyString) => {
     await navigator.clipboard.writeText(keyString);
     copiedKey.value = keyString;
 
-    // รีเซ็ตข้อความ "Copied!" กลับเป็นปกติหลังจาก 2 วินาที
     setTimeout(() => {
       copiedKey.value = null;
     }, 2000);
@@ -21,9 +20,9 @@ const copyKey = async (keyString) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-12 mb-12 min-h-[60vh] max-w-4xl">
-    <h2 class="text-3xl font-bold text-primary mb-8">
-      <i class="fa-solid fa-key mr-2"></i> Your Game Keys
+  <div class="store-container mt-12 mb-12 min-h-[60vh] max-w-[800px]">
+    <h2 class="mb-4 text-3xl font-extrabold text-primary">
+      <i class="fa-solid fa-key me-2"></i> Your Game Keys
     </h2>
 
     <div
@@ -33,55 +32,50 @@ const copyKey = async (keyString) => {
       <div
         v-for="item in cartStore.lastOrder"
         :key="item.gameName"
-        class="flex flex-col sm:flex-row bg-primary rounded-xl overflow-hidden shadow-md text-white"
+        class="bg-white rounded-xl p-6 mb-8 flex flex-col sm:flex-row gap-6 border border-[#eaeaea] shadow-[0_5px_15px_rgba(0,0,0,0.03)] items-center sm:items-start text-center sm:text-left"
       >
         <!-- Game Cover -->
         <img
           :src="item.coverImage"
           :alt="item.gameName"
-          class="w-full sm:w-48 h-48 sm:h-auto object-cover opacity-90"
+          class="w-[100px] rounded-lg aspect-[3/4] object-contain bg-[#1a1a1a] shrink-0 shadow-xs"
         />
 
         <!-- Key Details -->
-        <div class="p-6 flex-grow flex flex-col justify-center">
-          <h3 class="text-2xl font-bold mb-6 text-accent-yellow">
+        <div class="grow w-full">
+          <div class="text-primary font-extrabold text-[1.3rem] mb-4 border-b-2 border-[#f0f0f0] pb-2">
             {{ item.gameName }}
-          </h3>
+          </div>
 
-          <div class="space-y-3">
-            <div
-              v-for="(key, index) in item.keys"
-              :key="index"
-              class="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/10"
+          <div
+            v-for="(key, index) in item.keys"
+            :key="index"
+            class="bg-[#1a1a1a] text-[#00ff41] font-mono py-3 px-5 rounded-[6px] text-[1.2rem] font-bold tracking-[2px] mb-2 flex justify-between items-center border-l-4 border-accent-red shadow-sm"
+          >
+            <span class="truncate mr-3">{{ key }}</span>
+            <button
+              type="button"
+              class="bg-white/10 text-white border-0 py-1.5 px-3 rounded text-[0.9rem] cursor-pointer transition-colors duration-200 flex items-center shrink-0 hover:bg-primary"
+              :style="copiedKey === key ? { background: '#28a745' } : {}"
+              @click="copyKey(key)"
             >
-              <span class="font-mono text-lg tracking-widest">{{ key }}</span>
-              <button
-                @click="copyKey(key)"
-                class="px-4 py-1.5 rounded-md font-bold transition-all"
+              <i
                 :class="
                   copiedKey === key
-                    ? 'bg-green-500 text-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
+                    ? 'fa-solid fa-check mr-1'
+                    : 'fa-regular fa-copy mr-1'
                 "
-              >
-                <i
-                  :class="
-                    copiedKey === key
-                      ? 'fa-solid fa-check'
-                      : 'fa-regular fa-copy'
-                  "
-                ></i>
-                {{ copiedKey === key ? "Copied!" : "Copy" }}
-              </button>
-            </div>
+              ></i>
+              {{ copiedKey === key ? 'Copied!' : 'Copy' }}
+            </button>
           </div>
         </div>
       </div>
 
-      <div class="text-center mt-10">
+      <div class="text-center mt-8">
         <router-link
           to="/"
-          class="inline-block border-2 border-primary text-primary font-bold px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+          class="text-primary border-2 border-primary transition-all duration-300 bg-transparent rounded-[6px] px-6 py-2.5 font-bold inline-block hover:bg-primary hover:text-white"
         >
           Back to Store
         </router-link>
@@ -91,14 +85,16 @@ const copyKey = async (keyString) => {
     <!-- Empty State -->
     <div
       v-else
-      class="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100"
+      class="text-center py-12 bg-white rounded-2xl shadow-sm border p-8"
     >
-      <i class="fa-solid fa-ghost text-6xl text-gray-300 mb-4"></i>
-      <h3 class="text-2xl font-bold text-gray-400 mb-2">No keys found</h3>
-      <p class="text-gray-500 mb-6">You haven't purchased anything recently!</p>
+      <i
+        class="fa-solid fa-ghost mb-3 block text-[4rem] text-[#dee2e6]"
+      ></i>
+      <h3 class="font-extrabold text-2xl text-gray-400 mb-2">No keys found</h3>
+      <p class="text-gray-400 mb-6">You haven't purchased anything yet!</p>
       <router-link
         to="/"
-        class="inline-block bg-primary text-white font-bold px-8 py-2.5 rounded-lg hover:bg-twilight transition-colors"
+        class="bg-[#0d6efd] text-white px-3 py-1.5 rounded-md inline-block transition-colors hover:bg-[#0b5ed7]"
       >
         Go Shopping
       </router-link>

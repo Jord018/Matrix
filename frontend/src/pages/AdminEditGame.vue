@@ -26,8 +26,8 @@ const save = async (payload) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl font-bold mb-4">Edit Game</h1>
+  <div class="store-container mb-12">
+    <h1 class="page-title !text-[2rem]">Edit Game</h1>
     <p v-if="notFound" role="alert">Game not found</p>
     <GameForm v-else-if="game" :game="game" :save="save" />
   </div>

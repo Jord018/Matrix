@@ -9,6 +9,11 @@ const props = defineProps({
   totalPages: {
     type: Number,
     required: true
+  },
+  // Category/search pages in the old store listed every page with « »; home used the short form.
+  full: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -21,6 +26,7 @@ const pages = computed(() => {
   const items = [];
 
   if (total <= 1) return items;
+  if (props.full) return Array.from({ length: total }, (_, i) => i + 1);
 
   for (let i = 1; i <= total; i++) {
     // แสดงหน้า 1, หน้าสุดท้าย, และหน้าก่อน/หลัง หน้าปัจจุบัน 1 หน้า
@@ -28,7 +34,7 @@ const pages = computed(() => {
       items.push(i);
     }
     // เพิ่มจุดไข่ปลา (...) สำหรับหน้าที่ถูกข้าม
-    else if (i === current - 2 || i === current + 2) {
+    else if ((i === current - 2 || i === current + 2) && items.at(-1) !== '...') {
       items.push('...');
     }
   }
@@ -44,41 +50,59 @@ const changePage = (page) => {
 
 <template>
   <nav v-if="totalPages > 1" aria-label="Game page navigation">
-    <ul class="flex justify-center items-center gap-1 my-8 list-none p-0">
+    <ul id="paginationControls" class="flex justify-center items-center list-none p-0 my-10 gap-1 flex-wrap">
       <!-- ปุ่ม Prev -->
-      <li>
+      <li class="inline-flex" :class="{ 'pointer-events-none': currentPage === 1 }">
         <button
+          type="button"
           @click="changePage(currentPage - 1)"
           :disabled="currentPage === 1"
-          class="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="border-none font-bold rounded-lg w-9 h-9 md:w-10 md:h-10 flex items-center justify-center transition-all text-[0.95rem] cursor-pointer"
+          :class="currentPage === 1 ? 'text-gray-300 bg-transparent cursor-default' : 'text-primary hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-sm'"
+          aria-label="Previous Page"
         >
-          <i class="fa-solid fa-chevron-left"></i>
+          <span v-if="full">&laquo;</span>
+          <i v-else class="fa-solid fa-chevron-left"></i>
         </button>
       </li>
 
       <!-- ตัวเลขหน้า -->
-      <li v-for="(item, index) in pages" :key="index">
-        <span v-if="item === '...'" class="flex items-center justify-center w-10 h-10 text-gray-400 font-bold bg-transparent border-0">
+      <li
+        v-for="(item, index) in pages"
+        :key="index"
+        class="inline-flex"
+      >
+        <span
+          v-if="item === '...'"
+          class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-transparent border-0 text-gray-400 font-bold"
+        >
           ...
         </span>
         <button
           v-else
+          type="button"
           @click="changePage(item)"
-          class="flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-colors"
-          :class="item === currentPage ? 'bg-primary text-white shadow-md' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-100'"
+          class="border-none font-bold rounded-lg w-9 h-9 md:w-10 md:h-10 flex items-center justify-center transition-all text-[0.95rem] cursor-pointer"
+          :class="item === currentPage 
+            ? 'bg-gradient-to-r from-accent-red to-secondary text-white shadow-[0_5px_15px_rgba(143,1,119,0.3)] -translate-y-0.5' 
+            : 'text-primary hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-sm'"
         >
           {{ item }}
         </button>
       </li>
 
       <!-- ปุ่ม Next -->
-      <li>
+      <li class="inline-flex" :class="{ 'pointer-events-none': currentPage === totalPages }">
         <button
+          type="button"
           @click="changePage(currentPage + 1)"
           :disabled="currentPage === totalPages"
-          class="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="border-none font-bold rounded-lg w-9 h-9 md:w-10 md:h-10 flex items-center justify-center transition-all text-[0.95rem] cursor-pointer"
+          :class="currentPage === totalPages ? 'text-gray-300 bg-transparent cursor-default' : 'text-primary hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-sm'"
+          aria-label="Next Page"
         >
-          <i class="fa-solid fa-chevron-right"></i>
+          <span v-if="full">&raquo;</span>
+          <i v-else class="fa-solid fa-chevron-right"></i>
         </button>
       </li>
     </ul>

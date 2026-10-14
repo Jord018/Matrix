@@ -8,7 +8,6 @@ const router = useRouter();
 const cartStore = useCartStore();
 
 onMounted(() => {
-  // หากเข้ามาหน้านี้โดยที่ไม่มีสินค้าเตรียมรอไว้เลย ให้ดีดกลับหน้า Home
   if (cartStore.checkoutItems.length === 0) {
     router.push("/");
   }
@@ -30,17 +29,28 @@ const checkoutTotalPrice = computed(() => {
 
 const confirmPurchase = async () => {
   try {
-    // TODO: เตรียมเชื่อม API /orders ในการส่งข้อมูลสั่งซื้อจริง
-    // const res = await api('/orders', { method: 'POST', body: JSON.stringify({...}) });
+    const payload = {
+      items: cartStore.checkoutItems.map((item) => ({
+        gameId: item.game.id || item.game._id,
+        amount: item.quantity,
+      })),
+    };
 
-    // จำลองเมื่อสั่งซื้อสำเร็จ
+    const res = await api("/orders", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    const itemsWithKeys = res?.data?.items ?? res?.items ?? res?.data ?? (Array.isArray(res) ? res : []);
+    cartStore.setLastOrder(itemsWithKeys);
+
     if (cartStore.checkoutType === "cart") {
-      cartStore.clearCart(); // ล้างตะกร้าหลักเมื่อซื้อจากตะกร้าสำเร็จ
+      cartStore.clearCart();
     }
-    cartStore.checkoutItems = []; // ล้างคิวการซื้อ
+    cartStore.checkoutItems = [];
     cartStore.checkoutType = null;
 
-    router.push("/success"); // เตรียมรับหน้าที่ 10
+    router.push("/success");
   } catch (error) {
     console.error("Purchase failed:", error);
   }
@@ -48,67 +58,68 @@ const confirmPurchase = async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 mt-12 mb-12 min-h-[60vh] max-w-4xl">
-    <h2 class="text-3xl font-bold text-primary mb-10">
-      <i class="fa-solid fa-money-check-dollar mr-2"></i> Complete Your Purchase
+  <div class="store-container mt-6 mb-12 min-h-[60vh] max-w-[850px]">
+    <h2 class="mb-5 text-3xl font-extrabold text-primary">
+      <i class="fa-solid fa-money-check-dollar me-2"></i> Complete Your Purchase
     </h2>
 
-    <div class="space-y-4">
+    <div id="checkoutItemsContainer">
       <div
         v-for="item in cartStore.checkoutItems"
-        :key="item.game.id"
-        class="flex items-center bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
+        :key="item.game.id || item.game._id"
+        class="flex flex-col md:flex-row gap-6 mb-8 items-center md:items-stretch"
       >
         <div
-          class="w-24 h-32 shrink-0 rounded-md overflow-hidden bg-gray-100 mr-6"
+          class="shrink-0 w-[130px] rounded-lg overflow-hidden bg-[#f0f0f0] shadow-sm"
         >
           <img
             :src="item.game.coverImage"
             :alt="item.game.name"
-            class="w-full h-full object-cover"
+            class="w-full aspect-[3/4] object-contain block"
           />
         </div>
 
-        <div class="flex-grow flex flex-col justify-center">
-          <h4 class="text-xl font-bold text-gray-800 mb-2">
+        <div
+          class="flex-1 w-full md:w-auto bg-[#e9ecef] rounded-lg p-6 flex flex-col justify-between shadow-sm"
+        >
+          <div
+            class="text-primary font-extrabold text-[1.3rem] mb-2 border-b border-dotted border-[#ccc] pb-2"
+          >
             {{ item.game.name }}
-          </h4>
+          </div>
+
           <div class="flex justify-between items-center mt-4">
-            <span class="text-gray-600 font-medium"
-              >Amount: {{ item.quantity }}</span
-            >
-            <span class="text-xl font-bold text-primary"
-              >{{
-                (item.game.price * item.quantity).toLocaleString()
-              }}
-              Baht</span
-            >
+            <div class="font-bold text-[#555]">Amount: {{ item.quantity }}</div>
+            <div class="text-[1.2rem] font-bold text-accent-red">
+              {{ (item.game.price * item.quantity).toLocaleString() }} Baht
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <hr class="my-8 border-gray-200" />
+    <hr class="border-t-2 border-[#ccc] my-10" />
 
-    <div class="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-      <div class="flex justify-between items-center mb-4 text-lg">
-        <span class="text-gray-600 font-semibold">Total Amount</span>
-        <span class="font-bold text-gray-800" data-test="checkout-price"
-          >{{ checkoutTotalPrice.toLocaleString() }} Baht</span
-        >
+    <div>
+      <div class="flex justify-between text-[1.5rem] mb-4 text-[#333]">
+        <span class="font-semibold uppercase">Total Amount</span>
+        <span data-test="checkout-price" class="font-extrabold">
+          {{ checkoutTotalPrice.toLocaleString() }} Baht
+        </span>
       </div>
 
-      <div class="flex justify-between items-center text-lg mb-8">
-        <span class="text-gray-600 font-semibold">Item Count</span>
-        <span class="font-bold text-gray-800" data-test="checkout-count"
-          >{{ checkoutTotalItems }} Item(s)</span
-        >
+      <div class="flex justify-between text-[1.5rem] mb-4 text-[#333]">
+        <span class="font-semibold uppercase">Item Count</span>
+        <span data-test="checkout-count" class="font-extrabold">
+          {{ checkoutTotalItems }} Item(s)
+        </span>
       </div>
 
-      <div class="text-right">
+      <div class="text-right mt-4">
         <button
+          type="button"
           @click="confirmPurchase"
-          class="bg-primary text-white font-bold px-10 py-3 rounded-lg shadow-md hover:bg-twilight hover:shadow-lg transition-all text-lg"
+          class="btn-confirm bg-primary text-white text-[1.3rem] font-bold py-[15px] px-[50px] border-0 rounded-[6px] transition-all duration-300 cursor-pointer hover:bg-secondary hover:shadow-[0_4px_12px_rgba(143,1,119,0.3)]"
         >
           Confirm
         </button>

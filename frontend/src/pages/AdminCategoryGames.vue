@@ -5,11 +5,22 @@ import { api } from '../api'
 
 const route = useRoute()
 const games = ref([])
+const loading = ref(true)
+const failed = ref(false)
 
 // Old URLs address categories by name; the API uses ids, so resolve first.
 watch(() => route.params.name, async (name) => {
-  const cat = (await api('/admin/categories')).find((c) => c.name === name)
-  games.value = cat ? await api(`/admin/categories/${cat.id}/games`) : []
+  loading.value = true
+  failed.value = false
+  try {
+    const cat = (await api('/admin/categories')).find((c) => c.name === name)
+    games.value = cat ? await api(`/admin/categories/${cat.id}/games`) : []
+  } catch {
+    games.value = []
+    failed.value = true
+  } finally {
+    loading.value = false
+  }
 }, { immediate: true })
 
 const remove = async (game) => {
@@ -20,18 +31,39 @@ const remove = async (game) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-3xl font-bold text-primary mb-4">Category: {{ route.params.name }}</h1>
-    <p v-if="!games.length" data-test="empty">No games in this category.</p>
-    <ul class="space-y-3">
-      <li v-for="g in games" :key="g.id" data-test="game" class="flex items-center gap-3 bg-white rounded-lg shadow p-3">
-        <img :src="g.coverImage" :alt="g.name" class="h-14 rounded" />
-        <span class="flex-1 font-bold">{{ g.name }}</span>
-        <span>{{ g.price }} baht</span>
-        <span>Stock {{ g.stock }}</span>
-        <router-link :to="`/admin/edit-game/${g.id}`" class="bg-accent-yellow rounded px-3 py-1">Edit</router-link>
-        <button type="button" class="bg-accent-red text-white rounded px-3 py-1" @click="remove(g)">Delete</button>
-      </li>
-    </ul>
+  <div class="store-container">
+    <h1 class="page-title">Category: {{ route.params.name }}</h1>
+    <p v-if="loading" data-test="loading">Loading games...</p>
+    <p v-else-if="failed" role="alert" data-test="error">Could not load the games in this category. Please try again.</p>
+    <p v-else-if="!games.length" data-test="empty">No games in this category.</p>
+
+    <table v-else class="admin-table hidden md:table">
+      <thead>
+        <tr><th>Image</th><th>Game name</th><th>Game Price</th><th>Game Stock</th><th>Edit</th><th>Delete</th></tr>
+      </thead>
+      <tbody>
+        <tr v-for="g in games" :key="g.id" data-test="game">
+          <td><img :src="g.coverImage" :alt="g.name" class="game-img" /></td>
+          <td>{{ g.name }}</td>
+          <td>{{ g.price }} baht</td>
+          <td>{{ g.stock }}</td>
+          <td><router-link :to="`/admin/edit-game/${g.id}`" class="btn-edit">Edit</router-link></td>
+          <td><button type="button" class="btn-delete" @click="remove(g)">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="md:hidden">
+      <div v-for="g in games" :key="g.id" class="admin-card">
+        <img :src="g.coverImage" :alt="g.name" class="w-full rounded-lg mb-4" />
+        <h2 class="admin-card-title">{{ g.name }}</h2>
+        <p>Game Price: {{ g.price }} Baht</p>
+        <p>Game Stock: {{ g.stock }}</p>
+        <div class="flex justify-between gap-2 mt-2">
+          <router-link :to="`/admin/edit-game/${g.id}`" class="btn-edit">Edit</router-link>
+          <button type="button" class="btn-delete" @click="remove(g)">Delete</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

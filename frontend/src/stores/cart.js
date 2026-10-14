@@ -1,13 +1,34 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+
+// The old store kept the cart in the server session; keep it across reloads here.
+const STORAGE_KEY = 'mj-cart'
+const load = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}
+  } catch {
+    return {}
+  }
+}
 
 export const useCartStore = defineStore('cart', () => {
-  const items = ref([])
+  const saved = load()
+  const items = ref(saved.items ?? [])
 
   // --- เพิ่ม State สำหรับ Checkout ---
-  const checkoutItems = ref([])
-  const checkoutType = ref(null)
-  const lastOrder = ref(null)
+  const checkoutItems = ref(saved.checkoutItems ?? [])
+  const checkoutType = ref(saved.checkoutType ?? null)
+  const lastOrder = ref(saved.lastOrder ?? null)
+
+  watch([items, checkoutItems, checkoutType, lastOrder], () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        items: items.value, checkoutItems: checkoutItems.value, checkoutType: checkoutType.value, lastOrder: lastOrder.value,
+      }))
+    } catch {
+      // Storage full or blocked: the cart still works for this page view.
+    }
+  }, { deep: true, flush: 'sync' })
 
   const totalItems = computed(() => {
     return items.value.reduce((total, item) => total + item.quantity, 0)
@@ -50,7 +71,10 @@ export const useCartStore = defineStore('cart', () => {
     checkoutType.value = type
     if (type === 'cart') {
       // โคลนข้อมูลตะกร้ามาไว้ที่ checkout เพื่อไม่ให้ผูกกับตะกร้าหลัก (เผื่อแก้ตะกร้าทีหลัง)
-      checkoutItems.value = JSON.parse(JSON.stringify(items.value))
+      checkoutItems.value = items.value.map(item => ({
+        game: { ...item.game },
+        quantity: item.quantity
+      }))
     } else if (type === 'single' && game) {
       checkoutItems.value = [{ game, quantity: amount }]
     }
@@ -60,8 +84,16 @@ export const useCartStore = defineStore('cart', () => {
     lastOrder.value = orderData
   }
 
+  // Logout empties everything, like the old store destroying the session.
+  const reset = () => {
+    items.value = []
+    checkoutItems.value = []
+    checkoutType.value = null
+    lastOrder.value = null
+  }
+
   return {
     items, checkoutItems, checkoutType, lastOrder,
-    totalItems, totalPrice, addToCart, updateQuantity, removeFromCart, clearCart, prepareCheckout, setLastOrder
+    totalItems, totalPrice, addToCart, updateQuantity, removeFromCart, clearCart, prepareCheckout, setLastOrder, reset
   }
 })

@@ -42,15 +42,15 @@ describe('AdminCategories', () => {
         expect(rows).toHaveLength(2);
         expect(rows[0].text()).toContain('RPG');
         expect(rows[0].find('a').attributes('href')).toBe('/admin/back-category/RPG');
-        expect(rows[0].find('[data-test=eye]').text()).toBe('👁');
-        expect(rows[1].find('[data-test=eye]').text()).toBe('🚫');
+        expect(rows[0].find('[data-test=eye] i').classes()).toContain('fa-eye');
+        expect(rows[1].find('[data-test=eye] i').classes()).toContain('fa-eye-slash');
         expect(w.findAll('[data-test=cat-card]')).toHaveLength(2);
     });
 
     it('toggles visibility optimistically and persists it', async () => {
         const { w, f } = await page(json({}));
         await w.find('[data-test=eye]').trigger('click');
-        expect(w.find('[data-test=eye]').text()).toBe('🚫');
+        expect(w.find('[data-test=eye] i').classes()).toContain('fa-eye-slash');
         await flushPromises();
         expect(f.mock.calls[1][0]).toBe('/api/admin/categories/c1/visibility');
         expect(f.mock.calls[1][1].method).toBe('PATCH');
@@ -63,27 +63,27 @@ describe('AdminCategories', () => {
         const { w } = await page(json({}, false, 500));
         await w.find('[data-test=eye]').trigger('click');
         await flushPromises();
-        expect(w.find('[data-test=eye]').text()).toBe('👁');
+        expect(w.find('[data-test=eye] i').classes()).toContain('fa-eye');
         expect(alert).toHaveBeenCalled();
     });
 
     it('adds a category through the modal and reloads', async () => {
         const { w, f } = await page(json({ id: 'c3' }, true, 201), json([...CATS(), { id: 'c3', name: 'Indie', isVisible: true }]));
         await w.find('button[aria-label="Add category"]').trigger('click');
-        expect(w.find('[role=dialog]').text()).toContain('Add New Category');
+        expect(w.find('dialog').text()).toContain('Add New Category');
         await w.find('#cat-name').setValue('Indie');
         await w.find('form').trigger('submit.prevent');
         await flushPromises();
         expect(f.mock.calls[1][1].method).toBe('POST');
         expect(JSON.parse(f.mock.calls[1][1].body)).toEqual({ name: 'Indie' });
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        expect(w.find('dialog').exists()).toBe(false);
         expect(w.findAll('[data-test=cat-row]')).toHaveLength(3);
     });
 
     it('renames through the edit modal', async () => {
         const { w, f } = await page(json({}), json(CATS()));
         await w.findAll('button').find((b) => b.text() === 'Edit').trigger('click');
-        expect(w.find('[role=dialog]').text()).toContain('Current Name: RPG');
+        expect(w.find('dialog').text()).toContain('Current Name: RPG');
         expect(w.find('#cat-name').element.value).toBe('RPG');
         await w.find('#cat-name').setValue('Role Playing');
         await w.find('form').trigger('submit.prevent');
@@ -99,8 +99,8 @@ describe('AdminCategories', () => {
         await w.find('form').trigger('submit.prevent');
         await flushPromises();
         expect(w.find('[role=alert]').text()).toContain('already been taken');
-        await w.findAll('[role=dialog] button').at(0).trigger('click');
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        await w.findAll('dialog button').at(0).trigger('click');
+        expect(w.find('dialog').exists()).toBe(false);
     });
 
     it('falls back to the generic error message', async () => {
@@ -125,6 +125,20 @@ describe('AdminCategories', () => {
         expect(f.mock.calls[1][1].method).toBe('DELETE');
         expect(w.findAll('[data-test=cat-row]')).toHaveLength(1);
     });
+
+    it('supports actions on mobile cards', async () => {
+        const confirm = vi.fn().mockReturnValue(true);
+        vi.stubGlobal('confirm', confirm);
+        const { w } = await page(json({ isVisible: false }), json({}));
+        const card = w.find('[data-test=cat-card]');
+        await card.find('.btn-eye').trigger('click');
+        await flushPromises();
+        await card.findAll('button').find((b) => b.text() === 'Edit').trigger('click');
+        expect(w.find('dialog').exists()).toBe(true);
+        await w.find('button.btn-cancel').trigger('click');
+        await card.find('.btn-delete').trigger('click');
+        await flushPromises();
+    });
 });
 
 describe('AdminCategoryGames', () => {
@@ -142,6 +156,26 @@ describe('AdminCategoryGames', () => {
         expect(w.find('h1').text()).toBe('Category: RPG');
         expect(w.find('[data-test=game]').text()).toContain('Zelda');
         expect(w.find('a[href="/admin/edit-game/g1"]').exists()).toBe(true);
+    });
+
+    it('shows a loading message until the games arrive', async () => {
+        let release;
+        const f = vi.fn().mockResolvedValueOnce(json(CATS())).mockReturnValueOnce(new Promise((r) => { release = r; }));
+        vi.stubGlobal('fetch', f);
+        const w = await mountAt(AdminCategoryGames, '/admin/back-category/RPG', '/admin/back-category/:name');
+        await flushPromises();
+        expect(w.find('[data-test=loading]').exists()).toBe(true);
+        expect(w.find('[data-test=empty]').exists()).toBe(false);
+        release(json(GAMES));
+        await flushPromises();
+        expect(w.find('[data-test=loading]').exists()).toBe(false);
+        expect(w.findAll('[data-test=game]')).toHaveLength(1);
+    });
+
+    it('says so when loading the games fails', async () => {
+        const { w } = await view('RPG', json(CATS()), json({}, false, 500));
+        expect(w.find('[data-test=error]').exists()).toBe(true);
+        expect(w.find('[data-test=empty]').exists()).toBe(false);
     });
 
     it('shows an empty state for an unknown category', async () => {
@@ -164,5 +198,13 @@ describe('AdminCategoryGames', () => {
         await w.find('button').trigger('click');
         expect(f).toHaveBeenCalledTimes(2);
         expect(w.findAll('[data-test=game]')).toHaveLength(1);
+    });
+
+    it('deletes a game from mobile card', async () => {
+        vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+        const { w, f } = await view('RPG', json(CATS()), json(GAMES), json({}));
+        await w.find('.admin-card button.btn-delete').trigger('click');
+        await flushPromises();
+        expect(f.mock.calls[2][0]).toBe('/api/admin/games/g1');
     });
 });

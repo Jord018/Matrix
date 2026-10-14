@@ -3,7 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import Login from '../src/pages/Login.vue';
 import { adminGuard, routes } from '../src/router';
-import { auth, loadUser, login, logout } from '../src/auth';
+import { auth, loadUser, login, logout, requireLogin } from '../src/auth';
 
 const reply = (status, body = {}) => ({ ok: status < 400, status, json: () => Promise.resolve(body) });
 const stubFetch = (...responses) => {
@@ -51,6 +51,40 @@ describe('auth state', () => {
         await login('a', 'b');
         expect(f.mock.calls[0][0]).toBe('/sanctum/csrf-cookie');
         expect(f.mock.calls[1][1].headers['X-XSRF-TOKEN']).toBeUndefined();
+    });
+});
+
+describe('login-only routes and actions', () => {
+    const to = { meta: { auth: true }, fullPath: '/cart' };
+
+    it('marks cart, checkout, success and my-keys as login-only', () => {
+        for (const path of ['/cart', '/checkout', '/success', '/my-keys']) {
+            expect(routes.find((r) => r.path === path).meta.auth).toBe(true);
+        }
+    });
+
+    it('sends guests to /login with the target', async () => {
+        stubFetch(reply(401));
+        expect(await adminGuard(to)).toEqual({ path: '/login', query: { redirect: '/cart' } });
+    });
+
+    it('lets any logged-in user through', async () => {
+        stubFetch(reply(200, { Role: 'customer' }));
+        expect(await adminGuard(to)).toBe(true);
+    });
+
+    it('requireLogin pushes guests to /login and blocks the action', async () => {
+        stubFetch(reply(401));
+        const router = { push: vi.fn() };
+        expect(await requireLogin(router, '/product/1')).toBe(false);
+        expect(router.push).toHaveBeenCalledWith({ path: '/login', query: { redirect: '/product/1' } });
+    });
+
+    it('requireLogin allows logged-in users', async () => {
+        stubFetch(reply(200, { Role: 'customer' }));
+        const router = { push: vi.fn() };
+        expect(await requireLogin(router, '/')).toBe(true);
+        expect(router.push).not.toHaveBeenCalled();
     });
 });
 

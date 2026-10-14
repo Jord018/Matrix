@@ -37,8 +37,9 @@ describe('AdminHighlights', () => {
         expect(w.find('[data-test=empty]').text()).toBe('No Highlights Active');
     });
 
-    it('creates a highlight and reloads', async () => {
-        const { w, f } = await page(json({ id: 'h2' }, true, 201), json({ ...DATA(), highlights: [] }));
+    it('creates a highlight and shows it without re-downloading the games list', async () => {
+        const created = { id: 'h2', name: 'Mario', customImage: 'http://x/m.png', buttonColor: '#00ff00' };
+        const { w, f } = await page(json(created, true, 201));
         await w.find('button[aria-label="Add highlight"]').trigger('click');
         expect(w.findAll('#hl-game option')).toHaveLength(3);
         await w.find('#hl-game').setValue('g2');
@@ -47,8 +48,9 @@ describe('AdminHighlights', () => {
         await flushPromises();
         expect(f.mock.calls[1][1].method).toBe('POST');
         expect(JSON.parse(f.mock.calls[1][1].body)).toEqual({ gameId: 'g2', customImage: null, buttonColor: '#00ff00' });
-        expect(w.find('[role=dialog]').exists()).toBe(false);
-        expect(w.find('[data-test=empty]').exists()).toBe(true);
+        expect(w.find('dialog').exists()).toBe(false);
+        expect(w.findAll('[data-test=hl-row]').map((r) => r.text())).toEqual([expect.stringContaining('Zelda'), expect.stringContaining('Mario')]);
+        expect(f).toHaveBeenCalledTimes(2);
     });
 
     it('sends a custom banner URL when given', async () => {
@@ -68,8 +70,8 @@ describe('AdminHighlights', () => {
         await w.find('form').trigger('submit.prevent');
         await flushPromises();
         expect(w.find('[role=alert]').text()).toContain('valid URL');
-        await w.findAll('[role=dialog] button').at(0).trigger('click');
-        expect(w.find('[role=dialog]').exists()).toBe(false);
+        await w.findAll('dialog button').at(0).trigger('click');
+        expect(w.find('dialog').exists()).toBe(false);
     });
 
     it('falls back to the generic message', async () => {
@@ -93,5 +95,14 @@ describe('AdminHighlights', () => {
         expect(f.mock.calls[1][0]).toBe('/api/admin/highlights/h1');
         expect(f.mock.calls[1][1].method).toBe('DELETE');
         expect(w.find('[data-test=empty]').exists()).toBe(true);
+    });
+
+    it('deletes highlight from mobile card', async () => {
+        vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+        const { w, f } = await page(json({}));
+        await w.find('[data-test=hl-card] button').trigger('click');
+        await flushPromises();
+        expect(f.mock.calls[1][0]).toBe('/api/admin/highlights/h1');
+        expect(f.mock.calls[1][1].method).toBe('DELETE');
     });
 });
