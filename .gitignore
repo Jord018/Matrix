@@ -21,6 +21,7 @@ graft/.graph/
 backend/.env
 backend/.env.backup
 backend/.env.production
+backend/php.ini
 backend/.phpunit.cache
 backend/.phpunit.result.cache
 backend/vendor

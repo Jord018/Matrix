@@ -1,19 +1,185 @@
-import { afterEach, expect, it, vi } from 'vitest';
-import { flushPromises, mount } from '@vue/test-utils';
-import Home from '../src/pages/Home.vue';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { createRouter, createWebHistory } from 'vue-router'
+import Home from '../src/pages/Home.vue'
+import GameCard from '../src/components/GameCard.vue'
 
-afterEach(() => vi.unstubAllGlobals());
+// Mock api.js
+import * as apiModule from '../src/api'
 
-it('shows API status from /api/health', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ status: 'ok' }) }));
-    const wrapper = mount(Home);
-    await flushPromises();
-    expect(wrapper.get('[data-test="api-status"]').text()).toBe('ok');
-});
+const router = createRouter({
+    history: createWebHistory(),
+    routes: [
+        { path: '/', component: { template: '<div>Home</div>' } },
+        { path: '/product/:id', component: { template: '<div>Product</div>' } }
+    ]
+})
 
-it('shows offline when API fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('down')));
-    const wrapper = mount(Home);
-    await flushPromises();
-    expect(wrapper.get('[data-test="api-status"]').text()).toBe('offline');
-});
+describe('Home.vue', () => {
+    beforeEach(() => {
+        setActivePinia(createPinia())
+        // Mock scrollIntoView ที่ถูกเรียกตอนเปลี่ยนหน้า
+        Element.prototype.scrollIntoView = vi.fn()
+        apiModule.clearApiCache()
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it('fetches data and renders components correctly', async () => {
+        // จำลองข้อมูล 20 เกม
+        const mockGames = Array.from({ length: 20 }, (_, i) => ({
+            id: `game${i+1}`,
+            name: `Test Game ${i+1}`,
+            price: 500,
+            coverImage: '/cover.jpg'
+        }))
+        const mockHighlights = [{ id: '1', gameId: 'game1', name: 'Highlight 1', customImage: '/hl.jpg' }]
+
+        // จำลองการเรียก API
+        vi.spyOn(apiModule, 'api').mockImplementation(async (path) => {
+            if (path === '/games') return mockGames
+            if (path === '/highlights') return mockHighlights
+            return []
+        })
+
+        const wrapper = mount(Home, {
+            global: { plugins: [router] }
+        })
+
+        // รอ API โหลดเสร็จและ DOM อัปเดต
+        await flushPromises()
+
+        // ตรวจสอบว่าโหลด Highlight มาแสดง
+        expect(wrapper.find('img[alt="Highlight 1"]').exists()).toBe(true)
+
+        // ตรวจสอบ GameCard (หน้าแรกต้องแสดงแค่ 15 เกมแรก ตาม itemsPerPage)
+        const gameCards = wrapper.findAllComponents(GameCard)
+        expect(gameCards.length).toBe(15)
+        expect(wrapper.text()).toContain('Test Game 1')
+        expect(wrapper.text()).toContain('Test Game 15')
+        expect(wrapper.text()).not.toContain('Test Game 16') // เกมที่ 16 ไม่ควรแสดงในหน้าแรก
+        
+        // ตรวจสอบว่า Pagination ถูกเปิดขึ้นมา
+        const pagination = wrapper.find('nav[aria-label="Game page navigation"]')
+        expect(pagination.exists()).toBe(true)
+    })
+
+    it('navigates to next page and triggers scroll', async () => {
+        const mockGames = Array.from({ length: 20 }, (_, i) => ({
+            id: `game${i+1}`,
+            name: `Test Game ${i+1}`,
+            price: 500,
+            coverImage: '/cover.jpg'
+        }))
+
+        vi.spyOn(apiModule, 'api').mockImplementation(async (path) => {
+            if (path === '/games') return mockGames
+            return []
+        })
+
+        const wrapper = mount(Home, {
+            attachTo: document.body,
+            global: { plugins: [router] }
+        })
+        await flushPromises()
+
+        // จำลองการกดปุ่มหน้า 2
+        const page2Button = wrapper.findAll('button').find(btn => btn.text() === '2')
+        await page2Button.trigger('click')
+        await flushPromises()
+
+        // ควรแสดงเกมที่ 16 ถึง 20 แทน
+        expect(wrapper.text()).not.toContain('Test Game 15')
+        expect(wrapper.text()).toContain('Test Game 16')
+        expect(wrapper.text()).toContain('Test Game 20')
+
+        // ตรวจสอบว่าหน้าจอถูกสั่งให้ scroll กลับไปด้านบน
+        expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+
+        wrapper.unmount()
+    })
+
+    it('shows fallback UI when no games are fetched', async () => {
+        vi.spyOn(apiModule, 'api').mockResolvedValue([])
+
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('No games available!')
+    })
+
+    it('handles wrapped { data: [...] } response without throwing', async () => {
+        vi.spyOn(apiModule, 'api').mockImplementation(async (path) => {
+            if (path === '/games') return { data: [{ id: '1', name: 'Wrapped Game', price: 100 }] }
+            if (path === '/highlights') return { data: [{ id: 'h1', name: 'Wrapped HL', customImage: '/hl.png' }] }
+            return null
+        })
+
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Wrapped Game')
+        expect(wrapper.find('img[alt="Wrapped HL"]').exists()).toBe(true)
+    })
+
+    it('instantly renders games from cached snapshot before API responds', async () => {
+        apiModule.setCachedData('/games', [{ id: 'snap1', name: 'Instant Snapshot Game', price: 99, coverImage: '/snap.png' }])
+        apiModule.setCachedData('/highlights', [{ id: 'hsnap', gameId: 'snap1', name: 'Instant HL', customImage: '/shl.png' }])
+
+        // API hangs / delays
+        vi.spyOn(apiModule, 'api').mockReturnValue(new Promise(() => {}))
+
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+
+        expect(wrapper.text()).toContain('Instant Snapshot Game')
+        expect(wrapper.find('img[alt="Instant HL"]').exists()).toBe(true)
+    })
+
+    it('handles add to cart with requireLogin true and false', async () => {
+        const mockGames = [
+            { id: 'g1', name: 'Game 1', price: 100, coverImage: '/g1.png' },
+            { _id: 'g2', name: 'Game 2', price: 200, coverImage: '/g2.png' }
+        ]
+        vi.spyOn(apiModule, 'api').mockImplementation(async (path) => {
+            if (path === '/games') return mockGames
+            return []
+        })
+
+        const authModule = await import('../src/auth')
+        const cartStore = (await import('../src/stores/cart')).useCartStore()
+
+        // 1. Guest: requireLogin returns false
+        vi.spyOn(authModule, 'requireLogin').mockResolvedValueOnce(false)
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+        await flushPromises()
+
+        const gameCards = wrapper.findAllComponents(GameCard)
+        gameCards[0].vm.$emit('add-to-cart', { gameId: 'g1', amount: 1 })
+        await flushPromises()
+        expect(cartStore.items).toHaveLength(0)
+
+        // 2. Logged in: add by id
+        vi.spyOn(authModule, 'requireLogin').mockResolvedValueOnce(true)
+        gameCards[0].vm.$emit('add-to-cart', { gameId: 'g1', amount: 2 })
+        await flushPromises()
+        expect(cartStore.items).toHaveLength(1)
+
+        // 3. Logged in: add by _id
+        vi.spyOn(authModule, 'requireLogin').mockResolvedValueOnce(true)
+        gameCards[1].vm.$emit('add-to-cart', { gameId: 'g2', amount: 1 })
+        await flushPromises()
+        expect(cartStore.items).toHaveLength(2)
+    })
+
+    it('handles API returning non-array or failure in refresh', async () => {
+        vi.spyOn(apiModule, 'api').mockImplementation(async () => {
+            return { nonArray: true }
+        })
+        const wrapper = mount(Home, { global: { plugins: [router] } })
+        await flushPromises()
+        expect(wrapper.text()).toContain('No games available!')
+    })
+})

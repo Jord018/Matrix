@@ -11,7 +11,7 @@ class ExampleTest extends TestCase
     public function test_pg_text_array_round_trips(): void
     {
         $cast = new PgTextArray;
-        $values = ['Shooter', "Role-playing (RPG)", 'He said "hi"', 'a,b', 'back\slash'];
+        $values = ['Shooter', 'Role-playing (RPG)', 'He said "hi"', 'a,b', 'back\slash'];
 
         $stored = $cast->set(new Game, 'categories', $values, []);
 
