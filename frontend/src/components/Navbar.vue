@@ -13,6 +13,14 @@ const categoryDropdownRef = ref(null);
 const isCategoryOpen = ref(false);
 const isCategoryPinned = ref(false);
 const isMobileMenuOpen = ref(false);
+const isMobileCategoryOpen = ref(false);
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  if (!isMobileMenuOpen.value) {
+    isMobileCategoryOpen.value = false;
+  }
+};
 
 const toggleCategory = (e) => {
   e?.stopPropagation();
@@ -89,6 +97,7 @@ const search = () => {
   if (searchQuery.value.trim()) {
     router.push({ path: "/search", query: { q: searchQuery.value.trim() } });
     isMobileMenuOpen.value = false;
+    isMobileCategoryOpen.value = false;
   }
 };
 </script>
@@ -223,7 +232,7 @@ const search = () => {
         <!-- Mobile Menu Toggle Button -->
         <button
           type="button"
-          @click="isMobileMenuOpen = !isMobileMenuOpen"
+          @click="toggleMobileMenu"
           class="lg:hidden text-white text-2xl focus:outline-none cursor-pointer"
           aria-label="Toggle navigation"
         >
@@ -251,30 +260,36 @@ const search = () => {
         <div>
           <button
             type="button"
-            @click="isCategoryOpen = !isCategoryOpen"
-            class="text-white font-bold flex items-center justify-between w-full py-1 focus:outline-none"
+            @click="isMobileCategoryOpen = !isMobileCategoryOpen"
+            class="text-white font-bold flex items-center justify-between w-full py-1 focus:outline-none cursor-pointer"
           >
             <span class="flex items-center">
               <i class="fa-solid fa-gamepad text-accent-yellow mr-2"></i> Category
             </span>
-            <i :class="isCategoryOpen ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa-solid text-xs text-white/70"></i>
+            <i :class="isMobileCategoryOpen ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa-solid text-xs text-white/70"></i>
           </button>
-          <div v-show="isCategoryOpen" class="bg-black/20 rounded-lg p-2 mt-2 space-y-1 max-h-48 overflow-y-auto">
+          <div v-show="isMobileCategoryOpen" class="bg-black/20 rounded-lg p-2 mt-2 space-y-1 max-h-48 overflow-y-auto">
             <router-link
               v-for="cat in categories"
               :key="cat.id || cat.name"
               :to="'/category/' + encodeURIComponent(cat.name)"
               class="block px-3 py-1.5 text-sm text-white/90 hover:text-accent-yellow"
-              @click="isMobileMenuOpen = false"
+              @click="isMobileMenuOpen = false; isMobileCategoryOpen = false"
             >
               {{ cat.name }}
             </router-link>
+            <div
+              v-if="categories.length === 0"
+              class="px-3 py-1.5 text-sm text-white/60"
+            >
+              No Categories Found
+            </div>
           </div>
         </div>
         <router-link
           to="/contact"
           class="text-white font-bold flex items-center py-1 hover:text-accent-yellow transition-colors"
-          @click="isMobileMenuOpen = false"
+          @click="isMobileMenuOpen = false; isMobileCategoryOpen = false"
         >
           <i class="fa-solid fa-envelope text-accent-yellow mr-2"></i>
           Contact
