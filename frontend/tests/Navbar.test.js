@@ -185,7 +185,16 @@ describe('Navbar.vue', () => {
         // 3. Re-open mobile menu and toggle categories dropdown
         await toggleBtn.trigger('click')
         const mobileCatBtn = wrapper.findAll('.lg\\:hidden button').find((b) => b.text().includes('Category'))
+        const mobileCatMenu = wrapper.find('.lg\\:hidden .bg-black\\/20')
+        expect(mobileCatMenu.attributes('style')).toContain('display: none')
+
         await mobileCatBtn.trigger('click')
+        expect(mobileCatMenu.attributes('style')).not.toContain('display: none')
+
+        // Click outside on document does not break mobile category menu
+        document.body.click()
+        await flushPromises()
+        expect(mobileCatMenu.attributes('style')).not.toContain('display: none')
 
         // 4. Click mobile category link closes mobile menu
         const mobileCatLink = wrapper.findAll('.lg\\:hidden a').find((a) => a.text().includes('Action'))
